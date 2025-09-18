@@ -8,11 +8,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <Header /> {/* Header appears on all pages */}
-        <main>{children}</main>
-      </body>
-    </html>
+   <html lang="en">
+  <body className="max-w-7xl mx-auto">
+    <header className="sticky top-0 z-50 bg-white shadow">
+      <Header /> {/* Header stays visible on scroll */}
+    </header>
+    <main>{children}</main>
+  </body>
+</html>
+
   );
 }

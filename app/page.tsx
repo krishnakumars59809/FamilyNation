@@ -5,42 +5,42 @@ import Link from "next/link";
 const cards = [
 	{
 		title: "Peer Support",
-		img: "/images/peer-support.png",
+		img: "/images/peer-support.webp",
 		desc: "Connect with families who understand your journey.",
 	},
 	{
 		title: "Counseling",
-		img: "/images/counseling.png",
+		img: "/images/counselling.jpg",
 		desc: "Find trusted professionals for guidance and support.",
 	},
 	{
 		title: "Learning Help",
-		img: "/images/learning-help.png",
+		img: "/images/learning.jpg",
 		desc: "Access resources for learning challenges and academic support.",
 	},
 	{
 		title: "Conflict Resolution",
-		img: "/images/conflict-resolution.png",
+		img: "/images/conflict.webp",
 		desc: "Tools and referrals to help resolve family conflicts.",
 	},
 	{
 		title: "Community Events",
-		img: "/images/events.png",
+		img: "/images/event.png",
 		desc: "Join webinars, podcasts, and workshops for families.",
 	},
 	{
 		title: "Wellness Activities",
-		img: "/images/wellness.png",
+		img: "/images/welness.jpg",
 		desc: "Explore mindfulness, relaxation, and self-care tools.",
 	},
 	{
 		title: "Resource Library",
-		img: "/images/resources.png",
+		img: "/images/library.jpg",
 		desc: "Download research and guides for your family’s needs.",
 	},
 	{
 		title: "Rewards",
-		img: "/images/rewards.png",
+		img: "/images/rewards.jpg",
 		desc: "Earn loyalty rewards for engaging with FamilyNation.",
 	},
 ];
@@ -48,27 +48,6 @@ const cards = [
 export default function Home() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-blue-100 flex flex-col">
-			{/* Header */}
-
-
-			{/* Hero */}
-			<section className="max-w-4xl mx-auto text-center mt-12 mb-8 px-4">
-				<h1 className="text-4xl md:text-5xl font-extrabold text-blue-800 mb-4 drop-shadow">
-					Every Family’s Journey is Unique. <br className="hidden md:block" />
-					Find Support That Fits Yours.
-				</h1>
-				<p className="text-lg md:text-xl text-gray-700 mb-6">
-					FamilyNation offers evidence-based resources, real community, and expert
-					guidance for families facing challenges—personalized for you.
-				</p>
-				<a
-					href="#features"
-					className="inline-block bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-2xl font-bold text-xl shadow-xl hover:scale-105 hover:from-green-600 hover:to-blue-600 transition-all"
-				>
-					Explore Features
-				</a>
-			</section>
-
 			{/* Features Grid */}
 			<section id="features" className="max-w-6xl mx-auto px-4 py-8">
 				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">

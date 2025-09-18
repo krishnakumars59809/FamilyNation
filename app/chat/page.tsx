@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { demoScript } from "./script";
 import Image from "next/image";
 import profile from "../../public/hazel-avatar.png.png";
+import { usePathname } from "next/navigation";
 
 interface Message {
   type: string;
@@ -23,10 +24,21 @@ export default function ChatPage() {
   const [chatCompleted, setChatCompleted] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const isFirstRender = useRef(true);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+
+ useEffect(() => {
+  if (isFirstRender.current) {
+    console.log("Skip scroll on page load / nav load");
+    isFirstRender.current = false;
+    return; // Skip scrolling on first load
+  }
+
+  // Scroll only when messages update after first render
+  chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages]);
+
 
   const handleResponse = (response: string) => {
     if (chatCompleted) {
@@ -67,7 +79,7 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex items-center p-4 bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+      <header className="flex items-center p-4 bg-indigo-600 text-white shadow-md">
         <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border-2 border-white">
           <Image
             alt="Hazel avatar"
@@ -156,7 +168,9 @@ export default function ChatPage() {
               {/* Plan Card */}
               {msg.type === "plan" && (
                 <div className="mt-3 bg-indigo-50 p-3 rounded-xl">
-                  <h3 className="font-bold mb-2 text-indigo-700">{msg.title}</h3>
+                  <h3 className="font-bold mb-2 text-indigo-700">
+                    {msg.title}
+                  </h3>
                   <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                     {msg.steps?.map((step, j) => (
                       <li key={j}>{step}</li>
