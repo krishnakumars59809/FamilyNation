@@ -24,13 +24,11 @@ export default function ChatPage() {
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleResponse = (response: string) => {
-    // Aftercare logic
     if (chatCompleted) {
       if (response === "Restart Chat") {
         setMessages([demoScript[0]]);
@@ -52,13 +50,12 @@ export default function ChatPage() {
         setStep(step + 1);
       }, 600);
     } else {
-      // Chat finished, show Aftercare
       setTimeout(() => {
         setMessages((prev) => [
           ...prev,
           {
             type: "aftercare",
-            text: "Thank you for chatting with Hazel 💜 What would you like to do next?",
+            text: "✨ Thank you for chatting with Hazel 💜 What would you like to do next?",
             options: ["Restart Chat", "Exit to Home", "View Resources"],
           },
         ]);
@@ -70,8 +67,8 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex items-center p-4 bg-white shadow-md sticky top-0 z-50">
-        <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+      <header className="flex items-center p-4 bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+        <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border-2 border-white">
           <Image
             alt="Hazel avatar"
             src={profile}
@@ -80,7 +77,7 @@ export default function ChatPage() {
             className="object-cover"
           />
         </div>
-        <h2 className="text-lg font-semibold text-gray-800">Hazel</h2>
+        <h2 className="text-lg font-semibold">Hazel • FamilyNation</h2>
       </header>
 
       {/* Chat Container */}
@@ -88,10 +85,10 @@ export default function ChatPage() {
         {messages.map((msg, i) => (
           <div key={i} className={msg.type === "user" ? "text-right" : ""}>
             <div
-              className={`inline-block px-4 py-3 rounded-2xl shadow-md max-w-[80%] break-words whitespace-pre-wrap ${
+              className={`inline-block px-4 py-3 rounded-2xl shadow-md max-w-[80%] break-words whitespace-pre-wrap transition-all ${
                 msg.type === "user"
-                  ? "bg-gray-700 text-white"
-                  : "bg-white text-gray-800"
+                  ? "bg-teal-500 text-white"
+                  : "bg-indigo-100 text-gray-800"
               }`}
             >
               {msg.text && <p>{msg.text}</p>}
@@ -103,7 +100,7 @@ export default function ChatPage() {
                     <button
                       key={j}
                       onClick={() => handleResponse(opt)}
-                      className="px-4 py-2 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-100 transition flex-1 sm:flex-none"
+                      className="px-4 py-2 rounded-full bg-indigo-500 text-white shadow hover:bg-indigo-600 transition"
                     >
                       {opt}
                     </button>
@@ -118,7 +115,7 @@ export default function ChatPage() {
                     <button
                       key={j}
                       onClick={() => handleResponse(chip)}
-                      className="px-4 py-2 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-100 transition"
+                      className="px-4 py-2 rounded-full bg-indigo-200 text-indigo-800 hover:bg-indigo-300 transition"
                     >
                       {chip}
                     </button>
@@ -133,7 +130,7 @@ export default function ChatPage() {
                     <button
                       key={j}
                       onClick={() => handleResponse(level)}
-                      className="flex-1 px-4 py-2 rounded-lg border border-gray-400 text-gray-700 hover:bg-gray-100 transition"
+                      className="flex-1 px-4 py-2 rounded-lg bg-indigo-500 text-white shadow hover:bg-indigo-600 transition"
                     >
                       {level}
                     </button>
@@ -145,21 +142,22 @@ export default function ChatPage() {
               {msg.input === "text" && (
                 <input
                   type="text"
-                  placeholder="Enter here..."
+                  placeholder="💬 Type your response..."
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleResponse((e.target as HTMLInputElement).value);
+                      (e.target as HTMLInputElement).value = "";
                     }
                   }}
-                  className="mt-3 w-full border rounded-lg px-3 py-2"
+                  className="mt-3 w-full border rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
               )}
 
               {/* Plan Card */}
               {msg.type === "plan" && (
-                <div className="mt-3">
-                  <h3 className="font-bold mb-2">{msg.title}</h3>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                <div className="mt-3 bg-indigo-50 p-3 rounded-xl">
+                  <h3 className="font-bold mb-2 text-indigo-700">{msg.title}</h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                     {msg.steps?.map((step, j) => (
                       <li key={j}>{step}</li>
                     ))}
@@ -170,24 +168,24 @@ export default function ChatPage() {
               {/* Referrals */}
               {msg.type === "referrals" && (
                 <div className="mt-3 space-y-3">
-                  <h3 className="font-bold">{msg.title}</h3>
+                  <h3 className="font-bold text-indigo-700">{msg.title}</h3>
                   {msg.items?.map((r, j) => (
                     <div
                       key={j}
-                      className="border rounded-lg p-3 text-sm shadow-sm"
+                      className="border rounded-lg p-3 text-sm shadow-md bg-indigo-50"
                     >
                       <p className="font-semibold">{r.name}</p>
                       <p>
                         {r.credential} • {r.distance}
                       </p>
                       <p>{r.hours}</p>
-                      <p className="text-gray-600">{r.cost}</p>
-                      <p className="text-xs mt-1">Why here: {r.why}</p>
+                      <p className="text-gray-700">{r.cost}</p>
+                      <p className="text-xs mt-1">✨ Why here: {r.why}</p>
                       <button
                         onClick={() =>
                           handleResponse(`Request callback: ${r.name}`)
                         }
-                        className="mt-2 px-3 py-1 bg-gray-700 text-white rounded-full text-sm"
+                        className="mt-2 px-3 py-1 bg-teal-500 text-white rounded-full text-sm shadow hover:bg-teal-600"
                       >
                         Request callback
                       </button>
@@ -199,12 +197,12 @@ export default function ChatPage() {
               {/* Community / Programming */}
               {(msg.type === "community" || msg.type === "programming") &&
                 msg.card && (
-                  <div className="mt-3 border rounded-lg p-3 shadow-sm">
+                  <div className="mt-3 border rounded-lg p-3 shadow-md bg-indigo-50">
                     <p className="font-semibold">{msg.card.title}</p>
                     <p className="text-sm">{msg.card.time}</p>
                     <button
                       onClick={() => handleResponse(msg.card.action)}
-                      className="mt-2 px-3 py-1 bg-gray-700 text-white rounded-full text-sm"
+                      className="mt-2 px-3 py-1 bg-indigo-500 text-white rounded-full text-sm shadow hover:bg-indigo-600"
                     >
                       {msg.card.action}
                     </button>
@@ -217,7 +215,7 @@ export default function ChatPage() {
                   {msg.items?.map((r, j) => (
                     <div
                       key={j}
-                      className="border p-2 rounded-lg shadow-sm text-sm"
+                      className="border p-2 rounded-lg shadow-sm text-sm bg-indigo-50"
                     >
                       {r.type === "article" ? "📄" : "🎧"} {r.title}
                     </div>
@@ -232,7 +230,7 @@ export default function ChatPage() {
                     <button
                       key={j}
                       onClick={() => handleResponse(opt)}
-                      className="flex-1 px-4 py-2 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-100 transition sm:flex-none"
+                      className="flex-1 px-4 py-2 rounded-full bg-indigo-500 text-white shadow hover:bg-indigo-600 transition sm:flex-none"
                     >
                       {opt}
                     </button>
@@ -243,7 +241,6 @@ export default function ChatPage() {
           </div>
         ))}
 
-        {/* Auto-scroll */}
         <div ref={chatEndRef} />
       </main>
     </div>
