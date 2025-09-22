@@ -65,14 +65,6 @@ export default function App() {
           <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
             <div className="relative w-full max-w-md h-[80vh] bg-white rounded-xl shadow-lg overflow-hidden">
               <Chatbot onClose={() => setChatbotOpen(false)} />
-
-              {/* Close button inside modal */}
-              <button
-                className="absolute top-3 right-3 text-gray-600 hover:text-black text-2xl"
-                onClick={() => setChatbotOpen(false)}
-              >
-                &times;
-              </button>
             </div>
           </div>
         </ChatProvider>
