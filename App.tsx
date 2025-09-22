@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { Chatbot } from './components/Chatbot';
 import type { View } from './types';
 import { PlaceholderView } from './components/PlaceholderView';
+import { ChatProvider } from './context/chatContext';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -42,6 +43,8 @@ export default function App() {
           {renderView()}
         </main>
       </div>
+
+      {/* Floating button */}
       <div className="fixed bottom-8 right-8 z-50">
         <button
           onClick={() => setChatbotOpen(true)}
@@ -51,13 +54,35 @@ export default function App() {
           We Need Help Now!
         </button>
       </div>
-      <Chatbot isOpen={isChatbotOpen} onClose={() => setChatbotOpen(false)} />
+
+      {/* Chat popup */}
+      {isChatbotOpen && (
+        <ChatProvider
+          onComplete={(responses) => {
+            console.log("✅ Chat finished, responses:", responses);
+          }}
+        >
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+            <div className="relative w-full max-w-md h-[80vh] bg-white rounded-xl shadow-lg overflow-hidden">
+              <Chatbot onClose={() => setChatbotOpen(false)} />
+
+              {/* Close button inside modal */}
+              <button
+                className="absolute top-3 right-3 text-gray-600 hover:text-black text-2xl"
+                onClick={() => setChatbotOpen(false)}
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        </ChatProvider>
+      )}
     </div>
   );
 }
 
 const SparkleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12l2.293-2.293a1 1 0 011.414 0L10 12zM15 3l2.293 2.293a1 1 0 010 1.414L12 12l-2.293 2.293a1 1 0 01-1.414 0L6 12l2.293-2.293a1 1 0 011.414 0L12 12zM19 5l-2.293 2.293a1 1 0 01-1.414 0L13 5m0 14l-2.293-2.293a1 1 0 010-1.414L13 13l2.293-2.293a1 1 0 011.414 0L19 13l-2.293 2.293a1 1 0 01-1.414 0L13 13z" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 12l-2.293 2.293a1 1 0 01-1.414 0L4 12l2.293-2.293a1 1 0 011.414 0L10 12zM15 3l2.293 2.293a1 1 0 010 1.414L12 12l-2.293 2.293a1 1 0 01-1.414 0L6 12l2.293-2.293a1 1 0 011.414 0L12 12zM19 5l-2.293 2.293a1 1 0 01-1.414 0L13 5m0 14l-2.293-2.293a1 1 0 010-1.414L13 13l2.293-2.293a1 1 0 011.414 0L19 13l-2.293 2.293a1 1 0 01-1.414 0L13 13z" />
+  </svg>
 );
