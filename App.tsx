@@ -57,7 +57,7 @@ const App = () => {
       <div className="fixed bottom-8 right-8 z-50">
         <button
           onClick={() => setChatbotOpen(true)}
-          className="bg-[#F87171] hover:bg-[#e56565] text-white font-bold py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
+          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
           <SparkleIcon />
           We Need Help Now!
