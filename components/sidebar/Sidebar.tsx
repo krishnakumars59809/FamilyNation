@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import logo from '../assets/images/logo.png';
+import logo from "../../assets/images/logo.png";
+import { useResponsive } from "../../hook/useResponsive";
 // Keep your icon definitions and navItems the same
 // just add a "path" field for routes
 const IconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -28,7 +29,7 @@ const navItems = [
   { id: "events", label: "Events", icon: <CalendarIcon />, path: "/events" },
 ] as const;
 
-export const Sidebar: React.FC = () => {
+export const SideBarMenu: React.FC = () => {
   return (
     <aside className="w-64 bg-[#0D9488] text-white flex-shrink-0 flex flex-col">
       <div className="h-20 flex items-center justify-center border-b border-white/20 px-4">

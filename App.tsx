@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import ActionPlan from "./components/ActionPlan";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { Dashboard } from "./components/Dashboard";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components/sidebar/index";
 import { Header } from "./components/Header";
 import { SparkleIcon } from "lucide-react";
 import { ChatProvider } from "./context/chatContext";
