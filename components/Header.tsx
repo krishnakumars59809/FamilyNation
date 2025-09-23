@@ -2,29 +2,50 @@ import React from 'react';
 
 interface HeaderProps {
   onExit: () => void;
+  userName: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onExit }) => {
+export const Header: React.FC<HeaderProps> = ({ onExit, userName="johnson" }) => {
+  // Use a mock avatar URL that generates an image from the user's name
+  const mockAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D9488&color=fff&bold=true`;
+
   return (
     <header className="bg-white shadow-md z-10 flex-shrink-0">
       <div className="flex items-center justify-between h-16 px-6">
+        {/* Left side: Site Logo and Name */}
         <div className="flex items-center">
-            <div className="bg-brand-dark p-2 rounded-md mr-3">
-                <UsersIcon className="text-white"/>
-            </div>
-            <h1 className="text-xl font-semibold text-gray-700">FamilyNation</h1>
+           <div className="flex items-center gap-2">
+            <img 
+              src={mockAvatarUrl} 
+              alt={userName} 
+              className="w-8 h-8 rounded-full border-2 border-gray-300" 
+            />
+            <span className="text-gray-700 font-medium hidden sm:block">
+             Johnson
+            </span>
+          </div>
+
         </div>
-        <button
-          onClick={onExit}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center gap-2"
-        >
-          <LogOutIcon />
-          <span>EXIT PAGE</span>
-        </button>
+        
+        {/* Right side: User Avatar and Log Out Button */}
+        <div className="flex items-center gap-4">
+          {/* User Avatar */}
+         
+          {/* Log Out Button */}
+          <button
+            onClick={onExit}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center gap-2"
+          >
+            <LogOutIcon />
+            <span className="hidden md:block">Log Out</span>
+          </button>
+        </div>
       </div>
     </header>
   );
 };
+
+// --- Icon Components (unchanged) ---
 
 const UsersIcon: React.FC<{ className?: string }> = ({ className = "h-6 w-6" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
