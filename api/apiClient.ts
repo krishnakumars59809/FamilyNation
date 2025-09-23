@@ -1,23 +1,9 @@
-interface ImportMetaEnv {
-  readonly VITE_API_BASE?: string;
-  // add other env variables here if needed
-}
-
-declare global {
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
-}
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
+/// <reference types="vite/client" />
+const API_BASE = import.meta.env.VITE_API_BASE;
 console.log("API_BASE:", API_BASE);
-
-export async function apiClient<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   try {
-    const res = await fetch(API_BASE + endpoint, {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
       headers: { "Content-Type": "application/json" },
       ...options,
     });
