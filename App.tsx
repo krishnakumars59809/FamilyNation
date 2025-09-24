@@ -18,9 +18,9 @@ const App = () => {
 
   return (
     <div className="relative flex h-screen font-sans overflow-x-hidden">
-      {/* Background Image */}
       <div
-        className="fixed inset-0 w-full h-full bg-contain bg-center -z-20"
+
+        className="fixed inset-0 w-full h-full bg-contain bg-center -z-20 "
         style={{ backgroundImage: `url(${HappyFamilyImg})` }}
       />
       {/* Optional overlay to improve readability */}
