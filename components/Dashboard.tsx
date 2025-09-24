@@ -216,8 +216,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <strong className="text-[#1E3A8A]">
               stronger families build a stronger future
             </strong>
-            . Our AI agent Hazel and curated network of professionals are here to
-            guide you every step of the way.
+            . Our AI agent Hazel and curated network of professionals are here
+            to guide you every step of the way.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 mt-12 justify-center">
@@ -230,38 +230,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Location card */}
-          <div className="p-6 mt-12">
-            <h1 className="text-2xl font-bold mb-4">📍 Your Location</h1>
+          <div className="flex flex-col lg:flex-row justify-center items-start mt-12 gap-8">
+            {/* Right Content - Location */}
+            <div className="w-full lg:w-[420px] p-6 rounded-xl shadow-md bg-white/80 backdrop-blur">
+              <h1 className="text-2xl font-bold mb-4">📍 Your Location</h1>
 
-            {loading && <p>⏳ Loading...</p>}
-            {error && <p className="text-red-500">⚠️ {error}</p>}
+              {loading && <p>⏳ Loading...</p>}
+              {error && <p className="text-red-500">⚠️ {error}</p>}
 
-            {location && (
-              <div className="space-y-4">
-      
-               
+              {location && (
+                <div className="space-y-3">
+                  <div className="bg-gray-100 rounded-lg p-3 shadow-sm">
+                    <p className="text-sm">
+                      <strong>City:</strong> {location.city}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Region:</strong> {location.region}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Country:</strong> {location.country}
+                    </p>
+                  </div>
 
-                {/* Map */}
-                <div className="h-64 w-full rounded-lg overflow-hidden mt-4 shadow-lg">
-                  <MapContainer
-                    center={[location.lat, location.lon]}
-                    zoom={13}
-                    scrollWheelZoom={false}
-                    className="h-full w-full"
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    <Marker position={[location.lat, location.lon]}>
-                      <Popup>
-                        {location.city}, {location.region}, {location.country}
-                      </Popup>
-                    </Marker>
-                  </MapContainer>
+                  {/* Map */}
+                  <div className="h-64 w-full rounded-lg overflow-hidden shadow-lg border">
+                    <MapContainer
+                      center={[location.lat, location.lon]}
+                      zoom={13}
+                      scrollWheelZoom={false}
+                      className="h-full w-full"
+                    >
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      />
+                      <Marker position={[location.lat, location.lon]}>
+                        <Popup>
+                          {location.city}, {location.region}, {location.country}
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

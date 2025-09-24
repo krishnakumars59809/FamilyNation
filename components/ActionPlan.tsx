@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, MapPin, Phone, Star, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Phone,
+  Star,
+  Users,
+} from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { getRecommendedProfessionals } from "../api/actionPlanApi";
@@ -18,24 +27,21 @@ interface Professional {
 }
 
 const ActionPlan = () => {
- const navigate = useNavigate();
+  const navigate = useNavigate();
   const [responses, setResponses] = useState<string[]>([]);
   const [planSteps, setPlanSteps] = useState<string[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
 
-useEffect(() => {
-  // Scroll to top on page load
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo({ top: 0, behavior: "smooth" });
     // fetch action plan from BE
     getRecommendedProfessionals().then((data) => {
       console.log("Action Plan Data:", data);
       setPlanSteps(data.planSteps);
       setProfessionals(data.professionals);
     });
-  
-}, []);
-
-
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-calm">
@@ -46,7 +52,8 @@ useEffect(() => {
             Your Personalized Action Plan
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Based on your responses, here's your immediate support plan and recommended professionals.
+            Based on your responses, here's your immediate support plan and
+            location based recommended professionals.
           </p>
         </div>
 
@@ -77,19 +84,28 @@ useEffect(() => {
             </h2>
             <div className="space-y-4">
               {professionals.map((professional, index) => (
-                <div key={index} className="border border-border rounded-lg p-4 hover:shadow-soft transition-all">
+                <div
+                  key={index}
+                  className="border border-border rounded-lg p-4 hover:shadow-soft transition-all"
+                >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-foreground">{professional.name}</h3>
-                      <p className="text-primary font-medium">{professional.title}</p>
-                      <p className="text-muted-foreground text-sm">{professional.specialty}</p>
+                      <h3 className="font-semibold text-lg text-foreground">
+                        {professional.name}
+                      </h3>
+                      <p className="text-primary font-medium">
+                        {professional.title}
+                      </p>
+                      <p className="text-muted-foreground text-sm">
+                        {professional.specialty}
+                      </p>
                     </div>
                     <span className={Badge({ variant: "secondary" })}>
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       {professional.rating}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                     <div className="flex items-center text-muted-foreground">
                       <MapPin className="w-4 h-4 mr-1" />
@@ -100,11 +116,11 @@ useEffect(() => {
                       {professional.availability}
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground mb-4">
                     <strong>Why recommended:</strong> {professional.reason}
                   </p>
-                  
+
                   <div className="flex gap-3">
                     <Button variant="success" size="sm">
                       <Phone className="w-4 h-4 mr-2" />
@@ -130,7 +146,8 @@ useEffect(() => {
                 Family Crisis Support Group - Tonight at 7 PM
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                Join other families navigating similar challenges in a safe, confidential online space.
+                Join other families navigating similar challenges in a safe,
+                confidential online space.
               </p>
               <Button variant="calm">
                 Join Support Group
@@ -145,8 +162,8 @@ useEffect(() => {
               Want More Ongoing Support?
             </h2>
             <p className="text-muted-foreground mb-6">
-              Create a free FamilyNation account to access our full platform of resources, 
-              communities, and personalized support.
+              Create a free FamilyNation account to access our full platform of
+              resources, communities, and personalized support.
             </p>
             <Button variant="hero" onClick={() => navigate("/register")}>
               Create Free Account
