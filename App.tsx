@@ -77,15 +77,24 @@ const App = () => {
       </div>
 
       {/* Fullscreen hide overlay */}
-      {isHidden && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex justify-center items-center transition-opacity duration-500">
+      <>
+        {/* Fullscreen hide overlay */}
+        <div
+          className={`fixed inset-0 z-40 flex justify-center items-center transform ease-in-out
+    ${
+      !isHidden
+        ? 'translate-x-0 opacity-100 duration-700' // quick open
+        : '-translate-x-full opacity-0 duration-700' // slow close
+    }
+  `}
+        >
           <div
-            className="fixed inset-0 w-full h-full bg-contain bg-center -z-20"
+            className="absolute inset-0 w-full h-full bg-contain bg-center"
             style={{ backgroundImage: `url(${HappyFamilyImg})` }}
           />
-          <div className="fixed inset-0 bg-black/20 -z-10" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
-      )}
+      </>
 
       {/* Floating Chat Button */}
       <div className="fixed bottom-8 right-8 z-40">

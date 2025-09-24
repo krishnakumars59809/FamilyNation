@@ -17,3 +17,25 @@ View your app in AI Studio: https://ai.studio/apps/drive/1fdG5bI30fV1eXUA6zBToN-
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Pull Request (PR) Steps
+
+Before creating a PR, make sure your code is formatted and committed properly.
+
+```bash
+# 1. Format code with Prettier
+npx prettier --write .
+npx prettier --check .
+
+# 2. Stage all changes
+git add .
+
+# 3. Verify staged files
+git status
+
+# 4. Commit the changes
+git commit -m "chore: formatted code with prettier"
+
+# 5. Push to your branch and open a Pull Request
+git push origin your-branch-name
+```
