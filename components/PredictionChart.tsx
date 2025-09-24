@@ -23,31 +23,40 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Handle high-DPI screens
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, rect.width, rect.height);
 
     const currentStability = data.stabilityScore;
-    const projectedStability = data.chartData?.projected || Math.min(100, currentStability + 25);
+    const projectedStability =
+      data.chartData?.projected || Math.min(100, currentStability + 25);
     const riskLevel = 100 - currentStability;
 
-    // Colors from your style guide
+    // Colors
     const colors = {
-      current: '#1E3A8A', // Deep Blue
-      projected: '#34D399', // Soft Green
-      risk: '#F87171', // Soft Coral
-      grid: '#E5E7EB',
-      text: '#374151'
+      current: "#1E3A8A",
+      projected: "#34D399",
+      risk: "#F87171",
+      grid: "#E5E7EB",
+      text: "#374151",
     };
 
-    // Chart dimensions
+    // Chart dimensions (use rect.width/height instead of canvas.width)
     const padding = 40;
-    const chartWidth = canvas.width - (padding * 2);
-    const chartHeight = 120;
-    const barWidth = 60;
-    const spacing = 40;
+    const chartWidth = rect.width - padding * 2;
+    const chartHeight = rect.height - padding * 2 - 40;
+    const barWidth = 100;
+    const spacing = 80;
 
     // Draw grid lines
     ctx.strokeStyle = colors.grid;
@@ -56,55 +65,92 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
       const y = padding + chartHeight - (i / 100) * chartHeight;
       ctx.beginPath();
       ctx.moveTo(padding, y);
-      ctx.lineTo(canvas.width - padding, y);
+      ctx.lineTo(rect.width - padding, y);
       ctx.stroke();
-      
-      // Grid labels
+
       ctx.fillStyle = colors.text;
-      ctx.font = '12px system-ui';
+      ctx.font = "12px system-ui";
       ctx.fillText(`${i}%`, 10, y + 4);
     }
 
-    // Draw current stability bar
+    // Current bar
     const currentX = padding + spacing;
     const currentHeight = (currentStability / 100) * chartHeight;
     ctx.fillStyle = colors.current;
-    ctx.fillRect(currentX, padding + chartHeight - currentHeight, barWidth, currentHeight);
+    ctx.fillRect(
+      currentX,
+      padding + chartHeight - currentHeight,
+      barWidth,
+      currentHeight
+    );
 
-    // Draw projected stability bar
+    // Projected bar
     const projectedX = currentX + barWidth + spacing;
     const projectedHeight = (projectedStability / 100) * chartHeight;
     ctx.fillStyle = colors.projected;
-    ctx.fillRect(projectedX, padding + chartHeight - projectedHeight, barWidth, projectedHeight);
+    ctx.fillRect(
+      projectedX,
+      padding + chartHeight - projectedHeight,
+      barWidth,
+      projectedHeight
+    );
 
-    // Draw risk bar
+    // Risk bar
     const riskX = projectedX + barWidth + spacing;
     const riskHeight = (riskLevel / 100) * chartHeight;
     ctx.fillStyle = colors.risk;
-    ctx.fillRect(riskX, padding + chartHeight - riskHeight, barWidth, riskHeight);
+    ctx.fillRect(
+      riskX,
+      padding + chartHeight - riskHeight,
+      barWidth,
+      riskHeight
+    );
 
-    // Draw labels
+    // Labels
     ctx.fillStyle = colors.text;
-    ctx.font = '14px system-ui';
-    ctx.textAlign = 'center';
-    
-    ctx.fillText('Current', currentX + barWidth/2, padding + chartHeight + 20);
-    ctx.fillText('With Support', projectedX + barWidth/2, padding + chartHeight + 20);
-    ctx.fillText('Risk Level', riskX + barWidth/2, padding + chartHeight + 20);
+    ctx.font = "14px system-ui";
+    ctx.textAlign = "center";
 
-    // Draw percentage values
-    ctx.font = 'bold 16px system-ui';
-    ctx.fillText(`${currentStability}%`, currentX + barWidth/2, padding + chartHeight - currentHeight - 10);
-    ctx.fillText(`${projectedStability}%`, projectedX + barWidth/2, padding + chartHeight - projectedHeight - 10);
-    ctx.fillText(`${riskLevel}%`, riskX + barWidth/2, padding + chartHeight - riskHeight - 10);
+    ctx.fillText(
+      "Current",
+      currentX + barWidth / 2,
+      padding + chartHeight + 20
+    );
+    ctx.fillText(
+      "With Support",
+      projectedX + barWidth / 2,
+      padding + chartHeight + 20
+    );
+    ctx.fillText(
+      "Risk Level",
+      riskX + barWidth / 2,
+      padding + chartHeight + 20
+    );
 
+    // Values
+    ctx.font = "bold 16px system-ui";
+    ctx.fillText(
+      `${currentStability}%`,
+      currentX + barWidth / 2,
+      padding + chartHeight - currentHeight - 10
+    );
+    ctx.fillText(
+      `${projectedStability}%`,
+      projectedX + barWidth / 2,
+      padding + chartHeight - projectedHeight - 10
+    );
+    ctx.fillText(
+      `${riskLevel}%`,
+      riskX + barWidth / 2,
+      padding + chartHeight - riskHeight - 10
+    );
   }, [data]);
 
   return (
     <div className="w-full">
-      <canvas 
-        ref={canvasRef} 
-        width={400} 
+      <canvas
+        ref={canvasRef}
+        width={400}
         height={200}
         className="w-full h-auto max-w-full"
       />
