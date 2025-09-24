@@ -14,7 +14,7 @@
 //     showPrediction, 
 //     setShowPrediction 
 //   } = useChat(); // Use the context's showPrediction state
-  
+
 //   const [input, setInput] = useState("");
 //   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -67,10 +67,10 @@
 //         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
 //           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
 //             <h3 className="text-lg font-bold text-gray-800 mb-4">Family Stability Forecast</h3>
-            
+
 //             {/* Chart Component */}
 //             <PredictionChart data={predictionData} />
-            
+
 //             {/* Prediction Message */}
 //             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
 //               <p className="text-blue-800 text-sm leading-relaxed">
@@ -147,7 +147,7 @@
 //               }`}
 //             >
 //               <p className="leading-relaxed">{msg.content}</p>
-              
+
 //               {msg.options && (
 //                 <div className="mt-3 flex flex-col gap-2">
 //                   {msg.options.map((opt) => (
@@ -164,7 +164,7 @@
 //             </div>
 //           </div>
 //         ))}
-        
+
 //         {/* Show "analyzing" message when completed but before prediction */}
 //         {chatCompleted && !showPrediction && (
 //           <div className="flex justify-start">
@@ -178,7 +178,7 @@
 //             </div>
 //           </div>
 //         )}
-        
+
 //         <div ref={messagesEndRef} />
 //       </div>
 
@@ -227,17 +227,17 @@ import { PredictionChart } from "./PredictionChart";
 import { Link } from "react-router-dom";
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
-  const { 
-    messages, 
-    currentQuestion, 
-    sendAnswer, 
-    loading, 
-    chatCompleted, 
-    predictionData, 
-    showPrediction, 
-    setShowPrediction 
+  const {
+    messages,
+    currentQuestion,
+    sendAnswer,
+    loading,
+    chatCompleted,
+    predictionData,
+    showPrediction,
+    setShowPrediction
   } = useChat();
-  
+
   const [input, setInput] = useState("");
   const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -277,8 +277,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               <p className="text-xs opacity-90">It Starts at Home</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
           >
             &times;
@@ -289,7 +289,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">Meet the Johnson Family</h3>
-            
+
             {/* Family Avatars Grid */}
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               {/* Daughter */}
@@ -385,16 +385,18 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             </div>
           </div>
 
-          {/* Start Chat Button */}
-          <div className="mt-6">
-            <button
-              className="w-full bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
-              onClick={() => setShowFamilyProfile(false)}
-            >
-              Start Assessment with Hazel
-            </button>
-          </div>
         </div>
+
+        {/* Start Chat Button */}
+        <div className="p-4">
+          <button
+            className="w-full bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
+            onClick={() => setShowFamilyProfile(false)}
+          >
+            Start Assessment with Hazel
+          </button>
+        </div>
+
       </div>
     );
   }
@@ -417,8 +419,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               <p className="text-xs opacity-90">Family Stability Analysis</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
           >
             &times;
@@ -429,10 +431,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Family Stability Forecast</h3>
-            
+
             {/* Chart Component */}
             <PredictionChart data={predictionData} />
-            
+
             {/* Prediction Message */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
               <p className="text-blue-800 text-sm leading-relaxed">
@@ -443,28 +445,26 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             {/* Risk Level Indicator */}
             <div className="mt-4 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">Risk Level:</span>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                predictionData.riskLevel === "high" 
-                  ? "bg-red-100 text-red-800" 
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${predictionData.riskLevel === "high"
+                  ? "bg-red-100 text-red-800"
                   : predictionData.riskLevel === "medium"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-green-100 text-green-800"
-              }`}>
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-green-100 text-green-800"
+                }`}>
                 {predictionData.riskLevel.toUpperCase()}
               </span>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <Link to="/recommended" className="mt-6 flex gap-3">
-            <button
-              className="flex-1 bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
-              onClick={onClose}
-            >
-              Show Recommended Professionals
-            </button>
-          </Link>
         </div>
+        {/* Action Buttons */}
+        <Link to="/recommended" className="p-4 flex gap-3">
+          <button
+            className="flex-1 bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
+            onClick={onClose}
+          >
+            Show Recommended Professionals
+          </button>
+        </Link>
       </div>
     );
   }
@@ -486,8 +486,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             <p className="text-xs opacity-90">Family Support Agent</p>
           </div>
         </div>
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
         >
           &times;
@@ -502,14 +502,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                msg.type === "user"
+              className={`px-4 py-3 rounded-2xl max-w-[80%] ${msg.type === "user"
                   ? "bg-[#1E3A8A] text-white rounded-br-none"
                   : "bg-[#0D9488] text-white rounded-bl-none"
-              }`}
+                }`}
             >
               <p className="leading-relaxed">{msg.content}</p>
-              
+
               {msg.options && (
                 <div className="mt-3 flex flex-col gap-2">
                   {msg.options.map((opt) => (
@@ -526,7 +525,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             </div>
           </div>
         ))}
-        
+
         {/* Show "analyzing" message when completed but before prediction */}
         {chatCompleted && !showPrediction && (
           <div className="flex justify-start">
@@ -534,13 +533,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               <p className="leading-relaxed">Thank you for your answers. I'm analyzing your situation and preparing recommendations...</p>
               <div className="flex space-x-1 mt-2">
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 

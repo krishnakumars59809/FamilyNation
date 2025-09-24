@@ -60,7 +60,7 @@ const App = () => {
       {!isHidden && (
         <button
           onClick={() => setHidden(true)}
-          className="fixed top-[4.6rem] right-6 z-[100] bg-[#1E3A8A] text-white font-bold py-2 px-3 rounded-lg shadow-lg transition-all duration-300 flex items-center gap-2"
+          className="fixed top-[4.6rem] right-6 z-[100] bg-[#1E3A8A] hover:bg-[#274bb3] text-white font-bold py-3 px-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -80,16 +80,15 @@ const App = () => {
 
       {/* Fullscreen Hide Overlay */}
       <div
-        className={`fixed inset-0 bg-cover bg-center transform transition-all duration-700 ease-in-out ${
-          isHidden ? "translate-x-0 opacity-100 scale-100" : "-translate-x-full opacity-0 scale-95"
-        } w-full h-screen z-[200]`}
+        className={`fixed inset-0 bg-cover bg-center transform transition-all duration-700 ease-in-out ${isHidden ? "translate-x-0 opacity-100 scale-100" : "-translate-x-full opacity-0 scale-95"
+          } w-full h-screen z-[200]`}
         style={{ backgroundImage: `url(${HappyFamilyImg})` }}
       >
         {/* Show Button */}
         <div className="absolute top-6 right-6 z-[250]">
           <button
             onClick={() => setHidden(false)}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg shadow-lg transition-all duration-300 flex items-center gap-2"
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2"
           >
             <EyeIcon className="w-5 h-5" />
           </button>
@@ -100,10 +99,10 @@ const App = () => {
       <div className="fixed bottom-8 right-8 z-40">
         <button
           onClick={() => setChatbotOpen(true)}
-          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
+          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-6 lg:py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
-          <SparkleIcon />
-          We Need Help Now!
+          <div className="animate-pulse lg:animate-none"><SparkleIcon /></div>
+          <span className="hidden lg:block"> We Need Help Now!</span>
         </button>
       </div>
 

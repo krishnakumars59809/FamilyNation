@@ -41,11 +41,14 @@ const ActionPlan = () => {
       setPlanSteps(data.planSteps);
       setProfessionals(data.professionals);
     });
+
   }, []);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-calm">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 bg-white/90 rounded-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-4">
@@ -121,12 +124,12 @@ const ActionPlan = () => {
                     <strong>Why recommended:</strong> {professional.reason}
                   </p>
 
-                  <div className="flex gap-3">
+                  <div className="flex-none md:flex gap-3 items-center text-xs lg:text-md">
                     <Button variant="success" size="sm">
                       <Phone className="w-4 h-4 mr-2" />
                       Call {professional.phone}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button size="sm" className="mt-2 md:mt-0 bg-gray-200 border hover:border-black">
                       Request Warm Handoff
                     </Button>
                   </div>

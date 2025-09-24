@@ -58,12 +58,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="fixed inset-0 bg-black/20 -z-10" />
 
       {/* Content */}
-      <div className="relative z-20 p-6 min-h-screen">
+      <div className="relative z-20 p-[2px] md:p-6 min-h-screen">
         {/* Main Card */}
-        <div className="p-12 lg:p-16 rounded-2xl shadow-xl mb-12 lg:mb-16 border bg-white/90">
+        <div className="p-6 lg:p-16 rounded-2xl shadow-xl mb-12 lg:mb-16 border bg-white/90">
           <div className="flex flex-col lg:flex-row items-center justify-between mb-10">
             <div className="text-center lg:text-left mb-6 lg:mb-0">
-              <h1 className="text-5xl lg:text-6xl font-bold text-[#1E3A8A] font-montserrat bg-gradient-to-r from-[#1E3A8A] to-[#0D9488] bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-6xl font-bold text-[#1E3A8A] font-montserrat bg-gradient-to-r from-[#1E3A8A] to-[#0D9488] bg-clip-text text-transparent">
                 Welcome to FamilyNation
               </h1>
               <p className="text-2xl text-[#0D9488] mt-4 font-lato italic">
