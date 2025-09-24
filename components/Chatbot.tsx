@@ -1,5 +1,3 @@
-
-
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
@@ -74,7 +72,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
             {/* Family Avatars Grid */}
             <div className="grid md:grid-cols-2 gap-4 mb-6">
-
               {/* Daughter */}
               <div className="bg-red-50 p-4 rounded-lg border border-red-100  ">
                 <div className="flex items-center space-x-3 mb-2">
