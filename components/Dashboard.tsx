@@ -3,7 +3,7 @@ import type { View } from '../types';
 import { Location } from '../types/location';
 import { getLocation } from '../api/locationApi';
 import HappyFamilyImg from '../assets/images/happy-family.png';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -43,6 +43,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setLoading(false);
     }
   };
+
+  function ResizeMap() {
+    const map = useMap();
+    useEffect(() => {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100); // small delay to ensure container is ready
+    }, [map]);
+    return null;
+  }
 
   useEffect(() => {
     fetchLocation();
@@ -141,6 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {location.city}, {location.region}, {location.country}
                         </Popup>
                       </Marker>
+                      <ResizeMap />
                     </MapContainer>
                   </div>
                 </div>

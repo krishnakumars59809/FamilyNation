@@ -3,6 +3,7 @@ import { useResponsive } from '../hook/useResponsive';
 import { SideBarMenu } from './sidebar/Sidebar';
 import { LogOutIcon } from 'lucide-react';
 import logo from '../assets/images/logo.png';
+import { Link } from 'react-router-dom';
 interface HeaderProps {
   onExit: () => void;
   userName: string;
@@ -62,7 +63,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div>
           <div className="text-2xl font-bold font-montserrat pl-7">
-            <img src={logo} width={50} height={50} className="bg-white " />
+            <Link to="/dashboard">
+              <img src={logo} width={50} height={50} className="bg-white " />
+            </Link>
           </div>
         </div>
         {/* Log Out */}
