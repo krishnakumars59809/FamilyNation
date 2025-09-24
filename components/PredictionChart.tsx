@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 
 interface PredictionData {
   stabilityScore: number;
-  riskLevel: "low" | "medium" | "high";
+  riskLevel: 'low' | 'medium' | 'high';
   message: string;
   chartData?: {
     current: number;
@@ -23,7 +23,7 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Handle high-DPI screens
@@ -44,11 +44,11 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
 
     // Colors
     const colors = {
-      current: "#1E3A8A",
-      projected: "#34D399",
-      risk: "#F87171",
-      grid: "#E5E7EB",
-      text: "#374151",
+      current: '#1E3A8A',
+      projected: '#34D399',
+      risk: '#F87171',
+      grid: '#E5E7EB',
+      text: '#374151',
     };
 
     // Chart dimensions (use rect.width/height instead of canvas.width)
@@ -69,7 +69,7 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
       ctx.stroke();
 
       ctx.fillStyle = colors.text;
-      ctx.font = "12px system-ui";
+      ctx.font = '12px system-ui';
       ctx.fillText(`${i}%`, 10, y + 4);
     }
 
@@ -77,6 +77,12 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     const currentX = padding + spacing;
     const currentHeight = (currentStability / 100) * chartHeight;
     ctx.fillStyle = colors.current;
+    ctx.fillRect(
+      currentX,
+      padding + chartHeight - currentHeight,
+      barWidth,
+      currentHeight
+    );
     ctx.fillRect(
       currentX,
       padding + chartHeight - currentHeight,
@@ -108,27 +114,27 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
 
     // Labels
     ctx.fillStyle = colors.text;
-    ctx.font = "14px system-ui";
-    ctx.textAlign = "center";
+    ctx.font = '14px system-ui';
+    ctx.textAlign = 'center';
 
     ctx.fillText(
-      "Current",
+      'Current',
       currentX + barWidth / 2,
       padding + chartHeight + 20
     );
     ctx.fillText(
-      "With Support",
+      'With Support',
       projectedX + barWidth / 2,
       padding + chartHeight + 20
     );
     ctx.fillText(
-      "Risk Level",
+      'Risk Level',
       riskX + barWidth / 2,
       padding + chartHeight + 20
     );
 
     // Values
-    ctx.font = "bold 16px system-ui";
+    ctx.font = 'bold 16px system-ui';
     ctx.fillText(
       `${currentStability}%`,
       currentX + barWidth / 2,

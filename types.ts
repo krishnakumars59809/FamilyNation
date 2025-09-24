@@ -17,7 +17,12 @@ export interface ChatMessage {
 
 export interface Resource {
   name: string;
-  type: 'Professional' | 'Support Group' | 'Online Course' | 'Article' | 'Hotline';
+  type:
+    | 'Professional'
+    | 'Support Group'
+    | 'Online Course'
+    | 'Article'
+    | 'Hotline';
   description: string;
   rating: number;
   contact: {

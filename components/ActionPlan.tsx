@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,10 +10,10 @@ import {
   Phone,
   Star,
   Users,
-} from "lucide-react";
-import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { getRecommendedProfessionals } from "../api/actionPlanApi";
+} from 'lucide-react';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
+import { getRecommendedProfessionals } from '../api/actionPlanApi';
 
 interface Professional {
   name: string;
@@ -34,17 +34,14 @@ const ActionPlan = () => {
 
   useEffect(() => {
     // Scroll to top on page load
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // fetch action plan from BE
     getRecommendedProfessionals().then((data) => {
-      console.log("Action Plan Data:", data);
+      console.log('Action Plan Data:', data);
       setPlanSteps(data.planSteps);
       setProfessionals(data.professionals);
     });
-
   }, []);
-
-
 
   return (
     <div className="min-h-screen bg-gradient-calm">
@@ -103,7 +100,7 @@ const ActionPlan = () => {
                         {professional.specialty}
                       </p>
                     </div>
-                    <span className={Badge({ variant: "secondary" })}>
+                    <span className={Badge({ variant: 'secondary' })}>
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       {professional.rating}
                     </span>
@@ -129,7 +126,10 @@ const ActionPlan = () => {
                       <Phone className="w-4 h-4 mr-2" />
                       Call {professional.phone}
                     </Button>
-                    <Button size="sm" className="mt-2 md:mt-0 bg-gray-200 border hover:border-black">
+                    <Button
+                      size="sm"
+                      className="mt-2 md:mt-0 bg-gray-200 border hover:border-black"
+                    >
                       Request Warm Handoff
                     </Button>
                   </div>
@@ -168,7 +168,7 @@ const ActionPlan = () => {
               Create a free FamilyNation account to access our full platform of
               resources, communities, and personalized support.
             </p>
-            <Button variant="hero" onClick={() => navigate("/register")}>
+            <Button variant="hero" onClick={() => navigate('/register')}>
               Create Free Account
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import type { View } from "../types";
-import { Location } from "../types/location";
-import { getLocation } from "../api/locationApi";
-import HappyFamilyImg from "../assets/images/happy-family.png";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useEffect, useState } from 'react';
+import type { View } from '../types';
+import { Location } from '../types/location';
+import { getLocation } from '../api/locationApi';
+import HappyFamilyImg from '../assets/images/happy-family.png';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 // Fix marker icon issue for React + Vite
-import iconUrl from "leaflet/dist/images/marker-icon.png";
-import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
-import shadowUrl from "leaflet/dist/images/marker-shadow.png";
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -73,7 +73,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <p className="text-gray-700 text-lg leading-relaxed font-lato text-center lg:text-left max-w-4xl">
-            You're in a safe space. We believe{" "}
+            You're in a safe space. We believe{' '}
             <strong className="text-[#1E3A8A]">
               stronger families build a stronger future
             </strong>

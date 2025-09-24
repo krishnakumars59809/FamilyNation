@@ -1,7 +1,7 @@
 export interface HazelQuestion {
   id: string;
   question: string;
-  type: "buttons" | "chips" | "scale" | "text";
+  type: 'buttons' | 'chips' | 'scale' | 'text';
   multiSelect: boolean;
   options?: string[];
   placeholder?: string;

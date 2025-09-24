@@ -1,10 +1,13 @@
 /// <reference types="vite/client" />
 const API_BASE = import.meta.env.VITE_API_BASE;
-console.log("API_BASE:", API_BASE);
-export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+console.log('API_BASE:', API_BASE);
+export async function apiClient<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       ...options,
     });
 
@@ -15,7 +18,7 @@ export async function apiClient<T>(endpoint: string, options: RequestInit = {}):
 
     return res.json();
   } catch (error) {
-    console.error("API Client Error:", error);
+    console.error('API Client Error:', error);
     throw error;
   }
 }
