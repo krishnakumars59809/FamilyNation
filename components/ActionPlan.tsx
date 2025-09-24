@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, MapPin, Phone, Star, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Phone,
+  Star,
+  Users,
+} from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { getRecommendedProfessionals } from "../api/actionPlanApi";
@@ -46,7 +55,8 @@ const ActionPlan = () => {
             Your Personalized Action Plan
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Based on your responses, here's your immediate support plan and recommended professionals.
+            Based on your responses, here's your immediate support plan and
+            location based recommended professionals.
           </p>
         </div>
 
@@ -77,12 +87,21 @@ const ActionPlan = () => {
             </h2>
             <div className="space-y-4">
               {professionals.map((professional, index) => (
-                <div key={index} className="border border-border rounded-lg p-4 hover:shadow-soft transition-all">
+                <div
+                  key={index}
+                  className="border border-border rounded-lg p-4 hover:shadow-soft transition-all"
+                >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-foreground">{professional.name}</h3>
-                      <p className="text-primary font-medium">{professional.title}</p>
-                      <p className="text-muted-foreground text-sm">{professional.specialty}</p>
+                      <h3 className="font-semibold text-lg text-foreground">
+                        {professional.name}
+                      </h3>
+                      <p className="text-primary font-medium">
+                        {professional.title}
+                      </p>
+                      <p className="text-muted-foreground text-sm">
+                        {professional.specialty}
+                      </p>
                     </div>
                     <span className={Badge({ variant: "secondary" })}>
                       <Star className="w-3 h-3 mr-1 fill-current" />
@@ -130,7 +149,8 @@ const ActionPlan = () => {
                 Family Crisis Support Group - Tonight at 7 PM
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                Join other families navigating similar challenges in a safe, confidential online space.
+                Join other families navigating similar challenges in a safe,
+                confidential online space.
               </p>
               <Button variant="calm">
                 Join Support Group
@@ -145,8 +165,8 @@ const ActionPlan = () => {
               Want More Ongoing Support?
             </h2>
             <p className="text-muted-foreground mb-6">
-              Create a free FamilyNation account to access our full platform of resources,
-              communities, and personalized support.
+              Create a free FamilyNation account to access our full platform of
+              resources, communities, and personalized support.
             </p>
             <Button variant="hero" onClick={() => navigate("/register")}>
               Create Free Account
