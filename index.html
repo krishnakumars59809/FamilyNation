@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -21,25 +21,28 @@
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
             },
-          }
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+          "react/": "https://aistudiocdn.com/react@^19.1.1/",
+          "react": "https://aistudiocdn.com/react@^19.1.1",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/"
         }
       }
     </script>
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-  <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-<!-- In your HTML head -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Montserrat:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-</head>
+    <link rel="stylesheet" href="/index.css" />
+    <!-- In your HTML head -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Montserrat:wght@700&family=Lato:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
   <body class="bg-slate-50 antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

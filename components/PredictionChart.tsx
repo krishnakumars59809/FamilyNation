@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 
 interface PredictionData {
   stabilityScore: number;
-  riskLevel: "low" | "medium" | "high";
+  riskLevel: 'low' | 'medium' | 'high';
   message: string;
   chartData?: {
     current: number;
@@ -30,7 +30,8 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const currentStability = data.stabilityScore;
-    const projectedStability = data.chartData?.projected || Math.min(100, currentStability + 25);
+    const projectedStability =
+      data.chartData?.projected || Math.min(100, currentStability + 25);
     const riskLevel = 100 - currentStability;
 
     // Colors from your style guide
@@ -39,12 +40,12 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
       projected: '#34D399', // Soft Green
       risk: '#F87171', // Soft Coral
       grid: '#E5E7EB',
-      text: '#374151'
+      text: '#374151',
     };
 
     // Chart dimensions
     const padding = 40;
-    const chartWidth = canvas.width - (padding * 2);
+    const chartWidth = canvas.width - padding * 2;
     const chartHeight = 120;
     const barWidth = 60;
     const spacing = 40;
@@ -58,7 +59,7 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
       ctx.moveTo(padding, y);
       ctx.lineTo(canvas.width - padding, y);
       ctx.stroke();
-      
+
       // Grid labels
       ctx.fillStyle = colors.text;
       ctx.font = '12px system-ui';
@@ -69,42 +70,80 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     const currentX = padding + spacing;
     const currentHeight = (currentStability / 100) * chartHeight;
     ctx.fillStyle = colors.current;
-    ctx.fillRect(currentX, padding + chartHeight - currentHeight, barWidth, currentHeight);
+    ctx.fillRect(
+      currentX,
+      padding + chartHeight - currentHeight,
+      barWidth,
+      currentHeight
+    );
 
     // Draw projected stability bar
     const projectedX = currentX + barWidth + spacing;
     const projectedHeight = (projectedStability / 100) * chartHeight;
     ctx.fillStyle = colors.projected;
-    ctx.fillRect(projectedX, padding + chartHeight - projectedHeight, barWidth, projectedHeight);
+    ctx.fillRect(
+      projectedX,
+      padding + chartHeight - projectedHeight,
+      barWidth,
+      projectedHeight
+    );
 
     // Draw risk bar
     const riskX = projectedX + barWidth + spacing;
     const riskHeight = (riskLevel / 100) * chartHeight;
     ctx.fillStyle = colors.risk;
-    ctx.fillRect(riskX, padding + chartHeight - riskHeight, barWidth, riskHeight);
+    ctx.fillRect(
+      riskX,
+      padding + chartHeight - riskHeight,
+      barWidth,
+      riskHeight
+    );
 
     // Draw labels
     ctx.fillStyle = colors.text;
     ctx.font = '14px system-ui';
     ctx.textAlign = 'center';
-    
-    ctx.fillText('Current', currentX + barWidth/2, padding + chartHeight + 20);
-    ctx.fillText('With Support', projectedX + barWidth/2, padding + chartHeight + 20);
-    ctx.fillText('Risk Level', riskX + barWidth/2, padding + chartHeight + 20);
+
+    ctx.fillText(
+      'Current',
+      currentX + barWidth / 2,
+      padding + chartHeight + 20
+    );
+    ctx.fillText(
+      'With Support',
+      projectedX + barWidth / 2,
+      padding + chartHeight + 20
+    );
+    ctx.fillText(
+      'Risk Level',
+      riskX + barWidth / 2,
+      padding + chartHeight + 20
+    );
 
     // Draw percentage values
     ctx.font = 'bold 16px system-ui';
-    ctx.fillText(`${currentStability}%`, currentX + barWidth/2, padding + chartHeight - currentHeight - 10);
-    ctx.fillText(`${projectedStability}%`, projectedX + barWidth/2, padding + chartHeight - projectedHeight - 10);
-    ctx.fillText(`${riskLevel}%`, riskX + barWidth/2, padding + chartHeight - riskHeight - 10);
-
+    ctx.fillText(
+      `${currentStability}%`,
+      currentX + barWidth / 2,
+      padding + chartHeight - currentHeight - 10
+    );
+    ctx.fillText(
+      `${projectedStability}%`,
+      projectedX + barWidth / 2,
+      padding + chartHeight - projectedHeight - 10
+    );
+    ctx.fillText(
+      `${riskLevel}%`,
+      riskX + barWidth / 2,
+      padding + chartHeight - riskHeight - 10
+    );
   }, [data]);
 
   return (
     <div className="w-full">
-      <canvas 
-        ref={canvasRef} 
-        width={400} 
+      <canvas
+        ref={canvasRef}
+        width={400}
         height={200}
         className="w-full h-auto max-w-full"
       />

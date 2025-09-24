@@ -1,17 +1,16 @@
-import { Routes, Route } from "react-router-dom";
-import { useState } from "react";
-import ActionPlan from "./components/ActionPlan";
-import { PlaceholderView } from "./components/PlaceholderView";
-import { Dashboard } from "./components/Dashboard";
-import { Sidebar } from "./components/sidebar/index";
-import { Header } from "./components/Header";
-import { EyeIcon, SparkleIcon } from "lucide-react";
-import { ChatProvider } from "./context/chatContext";
-import { Chatbot } from "./components/Chatbot";
-import HappyFamilyImg from "./assets/images/happy-family.png";
-import "./index.css";
-import "leaflet/dist/leaflet.css";
-
+import { Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import ActionPlan from './components/ActionPlan';
+import { PlaceholderView } from './components/PlaceholderView';
+import { Dashboard } from './components/Dashboard';
+import { Sidebar } from './components/sidebar/index';
+import { Header } from './components/Header';
+import { EyeIcon, SparkleIcon } from 'lucide-react';
+import { ChatProvider } from './context/chatContext';
+import { Chatbot } from './components/Chatbot';
+import HappyFamilyImg from './assets/images/happy-family.png';
+import './index.css';
+import 'leaflet/dist/leaflet.css';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
@@ -30,7 +29,7 @@ const App = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
-          onExit={() => (window.location.href = "https://www.google.com")}
+          onExit={() => (window.location.href = 'https://www.google.com')}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-8">
           <Routes>
@@ -80,8 +79,11 @@ const App = () => {
 
       {/* Fullscreen Hide Overlay */}
       <div
-        className={`fixed inset-0 bg-cover bg-center transform transition-all duration-700 ease-in-out ${isHidden ? "translate-x-0 opacity-100 scale-100" : "-translate-x-full opacity-0 scale-95"
-          } w-full h-screen z-[200]`}
+        className={`fixed inset-0 bg-cover bg-center transform transition-all duration-700 ease-in-out ${
+          isHidden
+            ? 'translate-x-0 opacity-100 scale-100'
+            : '-translate-x-full opacity-0 scale-95'
+        } w-full h-screen z-[200]`}
         style={{ backgroundImage: `url(${HappyFamilyImg})` }}
       >
         {/* Show Button */}
@@ -101,7 +103,9 @@ const App = () => {
           onClick={() => setChatbotOpen(true)}
           className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-6 lg:py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
-          <div className="animate-pulse lg:animate-none"><SparkleIcon /></div>
+          <div className="animate-pulse lg:animate-none">
+            <SparkleIcon />
+          </div>
           <span className="hidden lg:block"> We Need Help Now!</span>
         </button>
       </div>

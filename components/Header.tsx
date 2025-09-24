@@ -18,10 +18,10 @@
 //         <div className="flex items-center">
 //           {isMobile && <>menu</>}
 //            <div className="flex items-center gap-2">
-//             <img 
-//               src={mockAvatarUrl} 
-//               alt={userName} 
-//               className="w-8 h-8 rounded-full border-2 border-gray-300" 
+//             <img
+//               src={mockAvatarUrl}
+//               alt={userName}
+//               className="w-8 h-8 rounded-full border-2 border-gray-300"
 //             />
 //             <span className="text-gray-700 font-medium hidden sm:block">
 //              Johnson
@@ -29,11 +29,11 @@
 //           </div>
 
 //         </div>
-        
+
 //         {/* Right side: User Avatar and Log Out Button */}
 //         <div className="flex items-center gap-4">
 //           {/* User Avatar */}
-         
+
 //           {/* Log Out Button */}
 //           <button
 //             onClick={onExit}
@@ -48,7 +48,6 @@
 //   );
 // };
 
-
 // const LogOutIcon: React.FC<{ className?: string }> = ({ className = "h-5 w-5" }) => (
 //     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
 //         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -56,14 +55,17 @@
 // );
 import React, { useState } from 'react';
 import { useResponsive } from '../hook/useResponsive';
-import { Sidebar } from "./sidebar/index";
+import { Sidebar } from './sidebar/index';
 import { SideBarMenu } from './sidebar/Sidebar';
 interface HeaderProps {
   onExit: () => void;
   userName: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onExit, userName = "johnson" }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onExit,
+  userName = 'johnson',
+}) => {
   const { isMobile } = useResponsive();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -89,7 +91,12 @@ export const Header: React.FC<HeaderProps> = ({ onExit, userName = "johnson" }) 
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
             )}
@@ -143,8 +150,16 @@ export const Header: React.FC<HeaderProps> = ({ onExit, userName = "johnson" }) 
   );
 };
 
-const LogOutIcon: React.FC<{ className?: string }> = ({ className = "h-5 w-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+const LogOutIcon: React.FC<{ className?: string }> = ({
+  className = 'h-5 w-5',
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"

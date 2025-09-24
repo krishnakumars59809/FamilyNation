@@ -4,15 +4,15 @@
 // import { Link, useNavigate } from "react-router-dom";
 
 // export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
-//   const { 
-//     messages, 
-//     currentQuestion, 
-//     sendAnswer, 
-//     loading, 
-//     chatCompleted, 
-//     predictionData, 
-//     showPrediction, 
-//     setShowPrediction 
+//   const {
+//     messages,
+//     currentQuestion,
+//     sendAnswer,
+//     loading,
+//     chatCompleted,
+//     predictionData,
+//     showPrediction,
+//     setShowPrediction
 //   } = useChat(); // Use the context's showPrediction state
 
 //   const [input, setInput] = useState("");
@@ -55,8 +55,8 @@
 //               <p className="text-xs opacity-90">Family Stability Analysis</p>
 //             </div>
 //           </div>
-//           <button 
-//             onClick={onClose} 
+//           <button
+//             onClick={onClose}
 //             className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
 //           >
 //             &times;
@@ -82,8 +82,8 @@
 //             <div className="mt-4 flex items-center justify-between">
 //               <span className="text-sm font-medium text-gray-600">Risk Level:</span>
 //               <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-//                 predictionData.riskLevel === "high" 
-//                   ? "bg-red-100 text-red-800" 
+//                 predictionData.riskLevel === "high"
+//                   ? "bg-red-100 text-red-800"
 //                   : predictionData.riskLevel === "medium"
 //                   ? "bg-yellow-100 text-yellow-800"
 //                   : "bg-green-100 text-green-800"
@@ -124,8 +124,8 @@
 //             <p className="text-xs opacity-90">Family Support Agent</p>
 //           </div>
 //         </div>
-//         <button 
-//           onClick={onClose} 
+//         <button
+//           onClick={onClose}
 //           className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
 //         >
 //           &times;
@@ -221,10 +221,10 @@
 //   );
 // };
 
-import { useState, useRef, useEffect } from "react";
-import { useChat } from "../context/chatContext";
-import { PredictionChart } from "./PredictionChart";
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from 'react';
+import { useChat } from '../context/chatContext';
+import { PredictionChart } from './PredictionChart';
+import { Link } from 'react-router-dom';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -235,29 +235,30 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     chatCompleted,
     predictionData,
     showPrediction,
-    setShowPrediction
+    setShowPrediction,
   } = useChat();
 
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Show loading state
-  if (loading) return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-sm mx-auto">
-      <div className="flex items-center justify-center space-x-2">
-        <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse"></div>
-        <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse delay-150"></div>
-        <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse delay-300"></div>
+  if (loading)
+    return (
+      <div className="p-6 bg-white rounded-xl shadow-lg max-w-sm mx-auto">
+        <div className="flex items-center justify-center space-x-2">
+          <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse delay-150"></div>
+          <div className="w-3 h-3 bg-[#0D9488] rounded-full animate-pulse delay-300"></div>
+        </div>
+        <p className="text-center mt-3 text-gray-600">Loading Hazel...</p>
       </div>
-      <p className="text-center mt-3 text-gray-600">Loading Hazel...</p>
-    </div>
-  );
+    );
 
   // NEW: Show family profile screen first
   if (showFamilyProfile) {
@@ -288,7 +289,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {/* Family Profile Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">Meet the Johnson Family</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">
+              Meet the Johnson Family
+            </h3>
 
             {/* Family Avatars Grid */}
             <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -299,7 +302,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                     <span className="text-red-600 font-bold">D</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-red-800">Daughter (17)</span>
+                    <span className="font-semibold text-red-800">
+                      Daughter (17)
+                    </span>
                     <p className="text-xs text-red-600">High School Student</p>
                   </div>
                 </div>
@@ -318,7 +323,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                     <span className="text-blue-600 font-bold">S</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-blue-800">Son (19)</span>
+                    <span className="font-semibold text-blue-800">
+                      Son (19)
+                    </span>
                     <p className="text-xs text-blue-600">College Student</p>
                   </div>
                 </div>
@@ -336,8 +343,12 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                     <span className="text-purple-600 font-bold">M</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-purple-800">Mother</span>
-                    <p className="text-xs text-purple-600">Working Professional</p>
+                    <span className="font-semibold text-purple-800">
+                      Mother
+                    </span>
+                    <p className="text-xs text-purple-600">
+                      Working Professional
+                    </p>
                   </div>
                 </div>
                 <ul className="text-xs text-purple-700 space-y-1">
@@ -355,7 +366,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                   </div>
                   <div>
                     <span className="font-semibold text-green-800">Father</span>
-                    <p className="text-xs text-green-600">Working Professional</p>
+                    <p className="text-xs text-green-600">
+                      Working Professional
+                    </p>
                   </div>
                 </div>
                 <ul className="text-xs text-green-700 space-y-1">
@@ -368,7 +381,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
             {/* Family Challenges Summary */}
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-              <h4 className="font-semibold text-yellow-800 mb-2">Family Challenges:</h4>
+              <h4 className="font-semibold text-yellow-800 mb-2">
+                Family Challenges:
+              </h4>
               <ul className="text-xs text-yellow-700 space-y-1">
                 <li>• Parents have combative marriage</li>
                 <li>• Disagreement on solutions</li>
@@ -380,11 +395,12 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             {/* Narration from document */}
             <div className="mt-4 p-4 bg-gray-100 rounded-lg">
               <p className="text-sm text-gray-700 italic">
-                "This family looks like so many others. Stress, conflict, and hardship don't stay at home — they spill over into schools, workplaces, and communities."
+                "This family looks like so many others. Stress, conflict, and
+                hardship don't stay at home — they spill over into schools,
+                workplaces, and communities."
               </p>
             </div>
           </div>
-
         </div>
 
         {/* Start Chat Button */}
@@ -396,7 +412,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             Start Assessment with Hazel
           </button>
         </div>
-
       </div>
     );
   }
@@ -430,7 +445,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {/* Prediction Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Family Stability Forecast</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              Family Stability Forecast
+            </h3>
 
             {/* Chart Component */}
             <PredictionChart data={predictionData} />
@@ -444,13 +461,18 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
             {/* Risk Level Indicator */}
             <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Risk Level:</span>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${predictionData.riskLevel === "high"
-                  ? "bg-red-100 text-red-800"
-                  : predictionData.riskLevel === "medium"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-green-100 text-green-800"
-                }`}>
+              <span className="text-sm font-medium text-gray-600">
+                Risk Level:
+              </span>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  predictionData.riskLevel === 'high'
+                    ? 'bg-red-100 text-red-800'
+                    : predictionData.riskLevel === 'medium'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-green-100 text-green-800'
+                }`}
+              >
                 {predictionData.riskLevel.toUpperCase()}
               </span>
             </div>
@@ -499,13 +521,14 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`px-4 py-3 rounded-2xl max-w-[80%] ${msg.type === "user"
-                  ? "bg-[#1E3A8A] text-white rounded-br-none"
-                  : "bg-[#0D9488] text-white rounded-bl-none"
-                }`}
+              className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                msg.type === 'user'
+                  ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                  : 'bg-[#0D9488] text-white rounded-bl-none'
+              }`}
             >
               <p className="leading-relaxed">{msg.content}</p>
 
@@ -530,11 +553,20 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {chatCompleted && !showPrediction && (
           <div className="flex justify-start">
             <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none">
-              <p className="leading-relaxed">Thank you for your answers. I'm analyzing your situation and preparing recommendations...</p>
+              <p className="leading-relaxed">
+                Thank you for your answers. I'm analyzing your situation and
+                preparing recommendations...
+              </p>
               <div className="flex space-x-1 mt-2">
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div
+                  className="w-2 h-2 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: '0.1s' }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: '0.2s' }}
+                ></div>
               </div>
             </div>
           </div>
@@ -554,9 +586,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && input.trim()) {
+                if (e.key === 'Enter' && input.trim()) {
                   sendAnswer(input);
-                  setInput("");
+                  setInput('');
                 }
               }}
             />
@@ -566,7 +598,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               onClick={() => {
                 if (input.trim()) {
                   sendAnswer(input);
-                  setInput("");
+                  setInput('');
                 }
               }}
             >
