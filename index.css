@@ -1,0 +1,8 @@
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+.animate-blink {
+  animation: blink 2s infinite;
+  transform-origin: center;
+}
