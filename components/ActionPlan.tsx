@@ -18,28 +18,28 @@ interface Professional {
 }
 
 const ActionPlan = () => {
- const navigate = useNavigate();
+  const navigate = useNavigate();
   const [responses, setResponses] = useState<string[]>([]);
   const [planSteps, setPlanSteps] = useState<string[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
 
-useEffect(() => {
-  // Scroll to top on page load
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo({ top: 0, behavior: "smooth" });
     // fetch action plan from BE
     getRecommendedProfessionals().then((data) => {
       console.log("Action Plan Data:", data);
       setPlanSteps(data.planSteps);
       setProfessionals(data.professionals);
     });
-  
-}, []);
+
+  }, []);
 
 
 
   return (
     <div className="min-h-screen bg-gradient-calm">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 bg-white/90 rounded-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-4">
@@ -89,7 +89,7 @@ useEffect(() => {
                       {professional.rating}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                     <div className="flex items-center text-muted-foreground">
                       <MapPin className="w-4 h-4 mr-1" />
@@ -100,17 +100,17 @@ useEffect(() => {
                       {professional.availability}
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground mb-4">
                     <strong>Why recommended:</strong> {professional.reason}
                   </p>
-                  
-                  <div className="flex gap-3">
+
+                  <div className="flex-none md:flex gap-3 items-center text-xs lg:text-md">
                     <Button variant="success" size="sm">
                       <Phone className="w-4 h-4 mr-2" />
                       Call {professional.phone}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button size="sm" className="mt-2 md:mt-0 bg-gray-200 border hover:border-black">
                       Request Warm Handoff
                     </Button>
                   </div>
@@ -145,7 +145,7 @@ useEffect(() => {
               Want More Ongoing Support?
             </h2>
             <p className="text-muted-foreground mb-6">
-              Create a free FamilyNation account to access our full platform of resources, 
+              Create a free FamilyNation account to access our full platform of resources,
               communities, and personalized support.
             </p>
             <Button variant="hero" onClick={() => navigate("/register")}>
