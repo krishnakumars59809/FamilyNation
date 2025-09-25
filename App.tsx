@@ -14,8 +14,8 @@ import { EyeIcon } from 'lucide-react';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar hidden by default
-  const [isHidden, setHidden] = useState(false); // Eye overlay hidden by default
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isHidden, setHidden] = useState(false); 
 
   return (
     <div className="relative flex h-screen font-sans overflow-hidden">
