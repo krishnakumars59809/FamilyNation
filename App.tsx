@@ -14,12 +14,13 @@ import RegisterForm from './pages/auth/Registerform';
 import LoginForm from './pages/auth/Loginform';
 import FamilyRegisterForm from './pages/auth/FamilyRegisterForm';
 import Header from './components/header/index';
+import ProfilePage from './pages/ProfilePage';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar hidden by default
   const [isHidden, setHidden] = useState(false); // Eye overlay hidden by default
-  console.log('Rk isHidden :', isHidden);
+
   useEffect(() => {
     setHidden(true);
   }, []);
@@ -72,6 +73,7 @@ const App = () => {
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/family-register" element={<FamilyRegisterForm />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
       </div>
