@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useResponsive } from '../../hook/useResponsive';
 import { LogInIcon, LogOutIcon } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onExit: () => void;
@@ -18,11 +18,20 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
   setSidebarOpen,
 }) => {
   const { isMobile } = useResponsive();
+  const navigate = useNavigate();
   const user = true;
 
   const mockAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     userName
   )}&background=0D9488&color=fff&bold=true`;
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   return (
     <header className="bg-white shadow-md z-20 flex-shrink-0 relative">
@@ -51,7 +60,10 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
 
           {/* User Avatar */}
           {user && (
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2"
+              onClick={() => setIsOpen(!isOpen)}
+            >
               <img
                 src={mockAvatarUrl}
                 alt={userName}
@@ -62,12 +74,33 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
               </span>
             </div>
           )}
+
+          {/* Dropdown menu */}
+          {isOpen && (
+            <div
+              className="absolute left-170 top-150 mt-2 w-36 bg-white border border-gray-200 shadow-lg rounded-md
+                     z-50 flex flex-col text-sm"
+            >
+              <Link to="/profile">
+                <button className="px-4 py-2 text-left hover:bg-gray-100 w-full">
+                  Profile
+                </button>
+              </Link>
+
+              <button
+                className="px-4 py-2 text-left hover:bg-gray-100 w-full text-red-500"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
-          <div className="text-2xl font-bold font-montserrat pl-7">
-            <Link to="/dashboard">
-              <img src={logo} width={50} height={50} className="bg-white " />
+          <div className="pl-7">
+            <Link to="/">
+              <img src={logo} width={50} height={50} className="bg-white" />
             </Link>
           </div>
         </div>
