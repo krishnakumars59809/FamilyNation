@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../api/userApi';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -267,7 +268,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       </div>
     );
   }
-
   // Main Chat Interface
   return (
     <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">

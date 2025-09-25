@@ -11,6 +11,8 @@ import 'leaflet/dist/leaflet.css';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { useUser } from '../api/userApi';
+import { useNavigate } from 'react-router-dom';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -28,6 +30,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   setView,
   setChatbotOpen,
 }) => {
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +97,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="flex flex-col sm:flex-row gap-6 mt-12 justify-center">
             <button
-              onClick={() => setChatbotOpen(true)}
+              onClick={() =>
+                !user ? navigate('/login') : setChatbotOpen(true)
+              }
               className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-5 px-10 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-xl flex items-center justify-center"
             >
               💬 We Need Help Now! Talk to Hazel
