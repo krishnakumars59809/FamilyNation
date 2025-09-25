@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../api/userApi';
+import { RELATIONSHIPS } from '../constants/relationship';
 
 type Member = {
   name: string;
@@ -14,6 +16,8 @@ type Member = {
 };
 
 export default function FamilyRegisterForm() {
+  const { user, addFamilyMembers } = useUser();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([
     { name: '', email: '', age: 0, gender: '', relationship: '', needs: [''] },
   ]);
@@ -28,19 +32,21 @@ export default function FamilyRegisterForm() {
     >
   ) => {
     const updated = [...members];
-    const { name, value } = e.target;
+    let { name, value } = e.target;
 
+    // normalize gender to lowercase
+    if (name === 'gender') {
+      updated[index].relationship = ''; // reset relationship
+    }
+
+    // convert textarea for needs into array
     if (name === 'needs') {
-      // Convert textarea input (comma separated or new lines) into array
       updated[index].needs = value
         .split('\n')
         .map((item) => item.trim())
         .filter((item) => item !== '');
     } else {
-      updated[index] = {
-        ...updated[index],
-        [name]: value,
-      };
+      updated[index][name as keyof Member] = value;
     }
 
     setMembers(updated);
@@ -70,37 +76,22 @@ export default function FamilyRegisterForm() {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-
     try {
-      const res = await fetch('/api/family/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(members),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setMessage('✅ Family members registered successfully!');
-        setMembers([
-          {
-            name: '',
-            email: '',
-            age: 0,
-            gender: '',
-            relationship: '',
-            needs: [''],
-          },
-        ]);
-      } else {
-        setMessage(data.message || '❌ Something went wrong.');
-      }
-    } catch (err) {
-      setMessage('⚠️ Server error.');
-    } finally {
+      // 👇 API call
+      console.log('kk user id', user?.id);
+      await addFamilyMembers(user?.id || '', members);
+      setMessage('Family members added successfully ✅');
+      navigate('/');
+    } catch (error) {
+      console.error('Error adding family members:', error);
+      alert('Something went wrong ❌');
       setLoading(false);
+      setMessage('');
     }
   };
+
   const Skip = 'Skip >';
+  // if(!user) return navigate('/login');
   return (
     <div className="min-h-screen flex items-center justify-center rounded-lg bg-white/90 px-4">
       <div className="w-full max-w-2xl bg-white shadow-xl p-8">
@@ -190,26 +181,36 @@ export default function FamilyRegisterForm() {
               </div>
 
               {/* Relationship Status */}
+              {/* Relationship Status */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
                   Relationship Status
                 </label>
                 <select
                   name="relationship"
-                  value={member.relationship}
+                  value={member?.relationship}
                   onChange={(e) => handleChange(index, e)}
                   required
                   className="w-full border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 >
                   <option value="">Select</option>
-                  <option value="Father">Father</option>
-                  <option value="Mother">Mother</option>
-                  <option value="Brother">Brother</option>
-                  <option value="Sister">Sister</option>
-                  <option value="Daughter">Daughter</option>
-                  <option value="Son">Son</option>
-                  <option value="Grandparent">Grandparent</option>
-                  <option value="Other">Other</option>
+                  {(
+                    RELATIONSHIPS[
+                      member?.gender as keyof typeof RELATIONSHIPS
+                    ] || [
+                      'Father',
+                      'Mother',
+                      'Brother',
+                      'Sister',
+                      'Daughter',
+                      'Son',
+                      'Other',
+                    ]
+                  ).map((rel) => (
+                    <option key={rel} value={rel.toLowerCase()}>
+                      {rel}
+                    </option>
+                  ))}
                 </select>
               </div>
 

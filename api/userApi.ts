@@ -1,5 +1,5 @@
 // src/hooks/useUser.ts
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '../api/apiClient'; // your fetch wrapper
 import { FamilyMember, User } from '../types/user';
 
@@ -20,8 +20,33 @@ interface RegisterData {
 interface AddFamilyMembersData extends Array<FamilyMember> {}
 
 export const useUser = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Restore from sessionStorage on first render
+    const storedUser = sessionStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    return sessionStorage.getItem('token');
+  });
+
+  // Whenever user changes, keep it in sessionStorage
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem('user', JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem('user');
+    }
+  }, [user]);
+
+  // Whenever token changes, keep it in sessionStorage
+  useEffect(() => {
+    if (token) {
+      sessionStorage.setItem('token', token);
+    } else {
+      sessionStorage.removeItem('token');
+    }
+  }, [token]);
 
   // ===== Auth =====
   const registerUser = async (data: RegisterData) => {

@@ -7,8 +7,11 @@ export async function apiClient<T>(
 ): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
+      ...options, // spread first
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}), // merge, custom headers override
+      },
     });
 
     if (!res.ok) {

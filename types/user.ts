@@ -11,7 +11,7 @@ export interface FamilyMember {
 }
 
 export interface User {
-  _id?: string; // MongoDB ID
+  id?: string; // MongoDB ID
   firstName: string;
   lastName?: string;
   email: string;
