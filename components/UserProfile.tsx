@@ -1,34 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '../api/userApi';
+import { useNavigate } from 'react-router-dom';
+import familyProfile from '../assets/images/familyProfile.webp';
 
 const UserProfile: React.FC = () => {
+  const navigate = useNavigate();
+  const { user: data } = useUser();
   const [user, setUser] = useState({
-    name: 'John son',
-    email: 'johnson@gmail.com',
+    name: data?.firstName,
+    email: data?.email,
   });
-
-  const [familyMembers, setFamilyMembers] = useState([
-    {
-      name: 'Alice Doe',
-      age: 30,
-      gender: 'Female',
-      relationship: 'Wife',
-      needs: 'Health insurance, Job support',
-    },
-    {
-      name: 'Bob Doe',
-      age: 10,
-      gender: 'Male',
-      relationship: 'Son',
-      needs: 'School supplies, Tuition',
-    },
-    {
-      name: 'Eve Doe',
-      age: 65,
-      gender: 'Female',
-      relationship: 'Mother',
-      needs: 'Medical care, Financial support',
-    },
-  ]);
+  const [familyMembers, setFamilyMembers] = useState(data?.familyMembers || []);
 
   const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -51,13 +33,19 @@ const UserProfile: React.FC = () => {
     alert('Profile Updated Successfully!');
   };
 
+  useEffect(() => {
+    if (!data) {
+      navigate('/login');
+    }
+  }, [data]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Profile Card */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col">
           <img
-            src="https://i.pravatar.cc/150?img=7"
+            src={data?.profilePicture || familyProfile}
             alt="Profile"
             className="w-full h-30 rounded-lg object-cover mb-4"
           />
