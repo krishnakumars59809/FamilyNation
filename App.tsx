@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ActionPlan from './components/ActionPlan';
 import { PlaceholderView } from './components/PlaceholderView';
 import { Dashboard } from './components/Dashboard';
@@ -11,11 +11,18 @@ import './index.css';
 import 'leaflet/dist/leaflet.css';
 import { SideBarMenu } from './components/sidebar/Sidebar';
 import { EyeIcon } from 'lucide-react';
+import RegisterForm from './components/auth/Registerform';
+import LoginForm from './components/auth/Loginform';
+import FamilyRegisterForm from './components/auth/FamilyRegisterForm';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar hidden by default
   const [isHidden, setHidden] = useState(false); // Eye overlay hidden by default
+  console.log('Rk isHidden :', isHidden);
+  useEffect(() => {
+    setHidden(true);
+  }, []);
 
   return (
     <div className="relative flex h-screen font-sans overflow-hidden">
@@ -62,6 +69,9 @@ const App = () => {
               path="/community"
               element={<PlaceholderView view="community" />}
             />
+            <Route path="/register" element={<RegisterForm />} />
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/family-register" element={<FamilyRegisterForm />} />
           </Routes>
         </main>
       </div>
