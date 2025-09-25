@@ -13,7 +13,7 @@ import { EyeIcon } from 'lucide-react';
 import RegisterForm from './pages/auth/Registerform';
 import LoginForm from './pages/auth/Loginform';
 import FamilyRegisterForm from './pages/auth/FamilyRegisterForm';
-import Header from './components/header';
+import Header from './components/header/index';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
