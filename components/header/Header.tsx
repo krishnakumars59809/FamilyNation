@@ -26,10 +26,8 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
   )}&background=0D9488&color=fff&bold=true`;
 
   const [isOpen, setIsOpen] = useState(false);
-  // const router = useRouter();
 
   const handleLogout = () => {
-    // Clear token/localStorage and redirect
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
@@ -64,8 +62,6 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
           {user && (
             <div
               className="flex items-center gap-2"
-              // onMouseEnter={() => setIsOpen(true)}
-              // onMouseLeave={() => setIsOpen(false)}
               onClick={() => setIsOpen(!isOpen)}
             >
               <img
@@ -78,6 +74,7 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
               </span>
             </div>
           )}
+
           {/* Dropdown menu */}
           {isOpen && (
             <div
@@ -101,9 +98,9 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
         </div>
 
         <div>
-          <div className="text-2xl font-bold font-montserrat pl-7">
-            <Link to="/dashboard">
-              <img src={logo} width={50} height={50} className="bg-white " />
+          <div className="pl-7">
+            <Link to="/">
+              <img src={logo} width={50} height={50} className="bg-white" />
             </Link>
           </div>
         </div>
