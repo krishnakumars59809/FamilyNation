@@ -1,53 +1,69 @@
 'use client';
 
-import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 type Member = {
   name: string;
   email: string;
-  password: string;
+  age: number;
   gender: string;
   relationship: string;
+  needs: string[];
 };
 
 export default function FamilyRegisterForm() {
   const [members, setMembers] = useState<Member[]>([
-    { name: '', email: '', password: '', gender: '', relationship: '' },
+    { name: '', email: '', age: 0, gender: '', relationship: '', needs: [''] },
   ]);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [showPassword, setShowPassword] = useState<boolean[]>([false]);
 
   const handleChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const updated = [...members];
-    updated[index][e.target.name as keyof Member] = e.target.value;
-    setMembers(updated);
-  };
+    const { name, value } = e.target;
 
-  const togglePassword = (index: number) => {
-    const updated = [...showPassword];
-    updated[index] = !updated[index];
-    setShowPassword(updated);
+    if (name === 'needs') {
+      // Convert textarea input (comma separated or new lines) into array
+      updated[index].needs = value
+        .split('\n')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
+    } else {
+      updated[index] = {
+        ...updated[index],
+        [name]: value,
+      };
+    }
+
+    setMembers(updated);
   };
 
   const addMember = () => {
     setMembers([
       ...members,
-      { name: '', email: '', password: '', gender: '', relationship: '' },
+      {
+        name: '',
+        email: '',
+        age: 0,
+        gender: '',
+        relationship: '',
+        needs: [''],
+      },
     ]);
-    setShowPassword([...showPassword, false]);
   };
 
   const removeMember = (index: number) => {
     if (members.length === 1) return; // prevent removing all
     const updated = members.filter((_, i) => i !== index);
-    const updatedShow = showPassword.filter((_, i) => i !== index);
     setMembers(updated);
-    setShowPassword(updatedShow);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,9 +82,15 @@ export default function FamilyRegisterForm() {
       if (res.ok) {
         setMessage('✅ Family members registered successfully!');
         setMembers([
-          { name: '', email: '', password: '', gender: '', relationship: '' },
+          {
+            name: '',
+            email: '',
+            age: 0,
+            gender: '',
+            relationship: '',
+            needs: [''],
+          },
         ]);
-        setShowPassword([false]);
       } else {
         setMessage(data.message || '❌ Something went wrong.');
       }
@@ -78,7 +100,7 @@ export default function FamilyRegisterForm() {
       setLoading(false);
     }
   };
-
+  const Skip = 'Skip >';
   return (
     <div className="min-h-screen flex items-center justify-center rounded-lg bg-white/90 px-4">
       <div className="w-full max-w-2xl bg-white shadow-xl p-8">
@@ -94,7 +116,7 @@ export default function FamilyRegisterForm() {
           {members.map((member, index) => (
             <div
               key={index}
-              className=" p-4 relative shadow-lg rounded-lg bg-blue-0"
+              className="p-4 relative shadow-lg rounded-lg bg-blue-0"
             >
               <h3 className="font-semibold text-center text-blue-700 mb-3">
                 Member {index + 1}
@@ -102,7 +124,7 @@ export default function FamilyRegisterForm() {
 
               {/* Name */}
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-700 mb-1">
                   Name
                 </label>
                 <input
@@ -118,7 +140,7 @@ export default function FamilyRegisterForm() {
 
               {/* Email */}
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-700 mb-1">
                   Email
                 </label>
                 <input
@@ -128,42 +150,29 @@ export default function FamilyRegisterForm() {
                   onChange={(e) => handleChange(index, e)}
                   required
                   className="w-full border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="you@example.com"
+                  placeholder="xyz@gmail.com"
                 />
               </div>
 
-              {/* Password */}
+              {/* Age */}
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                <label className="block text-sm font-bold text-gray-700 mb-1">
+                  Age
                 </label>
-                <div className="relative">
-                  <input
-                    type={showPassword[index] ? 'text' : 'password'}
-                    name="password"
-                    value={member.password}
-                    onChange={(e) => handleChange(index, e)}
-                    required
-                    placeholder="********"
-                    className="w-full border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => togglePassword(index)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword[index] ? (
-                      <EyeOff size={20} />
-                    ) : (
-                      <Eye size={20} />
-                    )}
-                  </button>
-                </div>
+                <input
+                  type="number"
+                  name="age"
+                  value={member.age}
+                  onChange={(e) => handleChange(index, e)}
+                  required
+                  className="w-full border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="25"
+                />
               </div>
 
               {/* Gender */}
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-700 mb-1">
                   Gender
                 </label>
                 <select
@@ -182,7 +191,7 @@ export default function FamilyRegisterForm() {
 
               {/* Relationship Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-gray-700 mb-1">
                   Relationship Status
                 </label>
                 <select
@@ -202,6 +211,21 @@ export default function FamilyRegisterForm() {
                   <option value="Grandparent">Grandparent</option>
                   <option value="Other">Other</option>
                 </select>
+              </div>
+
+              {/* Needs */}
+              <div className="mb-3">
+                <label className="block text-sm font-bold text-gray-700 mb-1">
+                  Needs
+                </label>
+                <textarea
+                  name="needs"
+                  value={member.needs.join('\n')} // join array into new lines
+                  onChange={(e) => handleChange(index, e)}
+                  placeholder="Enter each need on a new line"
+                  className="w-full bg-gray-100 border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  rows={3}
+                />
               </div>
 
               {/* Remove Button */}
@@ -230,10 +254,13 @@ export default function FamilyRegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-800  text-white font-semibold shadow-sm transition"
+            className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-800 text-white font-semibold shadow-sm transition"
           >
             {loading ? 'Registering...' : 'Register All Members'}
           </button>
+          <div className="text-center font-bold underline text-green-700">
+            <Link to="/login">{Skip}</Link>
+          </div>
         </form>
       </div>
     </div>
