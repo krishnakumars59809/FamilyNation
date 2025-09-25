@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import ActionPlan from './components/ActionPlan';
 import { PlaceholderView } from './components/PlaceholderView';
 import { Dashboard } from './components/Dashboard';
-import { Header } from './components/Header';
 import { ChatProvider } from './context/chatContext';
 import { Chatbot } from './components/Chatbot';
 import HappyFamilyImg from './assets/images/happy-family.png';
@@ -14,6 +13,7 @@ import { EyeIcon } from 'lucide-react';
 import RegisterForm from './components/auth/Registerform';
 import LoginForm from './components/auth/Loginform';
 import FamilyRegisterForm from './components/auth/FamilyRegisterForm';
+import Header from './components/header';
 
 const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useResponsive } from '../hook/useResponsive';
-import { SideBarMenu } from './sidebar/Sidebar';
-import { LogOutIcon } from 'lucide-react';
-import logo from '../assets/images/logo.png';
+import React from 'react';
+import { useResponsive } from '../../hook/useResponsive';
+import { LogInIcon, LogOutIcon } from 'lucide-react';
+import logo from '../../assets/images/logo.png';
 import { Link } from 'react-router-dom';
+
 interface HeaderProps {
   onExit: () => void;
   userName: string;
@@ -11,13 +11,14 @@ interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const HeaderComponent: React.FC<HeaderProps> = ({
   onExit,
   userName = 'Johnson',
   sidebarOpen,
   setSidebarOpen,
 }) => {
   const { isMobile } = useResponsive();
+  const user = true;
 
   const mockAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     userName
@@ -49,16 +50,18 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* User Avatar */}
-          <div className="flex items-center gap-2">
-            <img
-              src={mockAvatarUrl}
-              alt={userName}
-              className="w-8 h-8 rounded-full border-2 border-gray-300"
-            />
-            <span className="text-gray-700 font-medium hidden sm:block capitalize">
-              {userName}
-            </span>
-          </div>
+          {user && (
+            <div className="flex items-center gap-2">
+              <img
+                src={mockAvatarUrl}
+                alt={userName}
+                className="w-8 h-8 rounded-full border-2 border-gray-300"
+              />
+              <span className="text-gray-700 font-medium hidden sm:block capitalize">
+                {userName}
+              </span>
+            </div>
+          )}
         </div>
 
         <div>
@@ -70,13 +73,22 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         {/* Log Out */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onExit}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center gap-2"
-          >
-            <LogOutIcon />
-            <span className="hidden md:block">Log Out</span>
-          </button>
+          {user ? (
+            <button
+              onClick={onExit}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center gap-2"
+            >
+              <LogOutIcon />
+              <span className="hidden md:block">Exit</span>
+            </button>
+          ) : (
+            <Link to="/login">
+              <button className="text-green-500 hover:text-green-700 hover:bg-green-50 font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center gap-2">
+                <LogInIcon />
+                <span className="hidden md:block">Login</span>
+              </button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
