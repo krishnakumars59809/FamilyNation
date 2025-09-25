@@ -10,9 +10,9 @@ import './index.css';
 import 'leaflet/dist/leaflet.css';
 import { SideBarMenu } from './components/sidebar/Sidebar';
 import { EyeIcon } from 'lucide-react';
-import RegisterForm from './components/auth/Registerform';
-import LoginForm from './components/auth/Loginform';
-import FamilyRegisterForm from './components/auth/FamilyRegisterForm';
+import RegisterForm from './pages/auth/Registerform';
+import LoginForm from './pages/auth/Loginform';
+import FamilyRegisterForm from './pages/auth/FamilyRegisterForm';
 import Header from './components/header';
 
 const App = () => {

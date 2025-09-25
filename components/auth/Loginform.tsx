@@ -1,11 +1,13 @@
 'use client';
-
+import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 import logo from '../../assets/images/logo.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../api/userApi';
 
 export default function LoginForm() {
+  const { loginUser } = useUser();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -21,19 +23,14 @@ export default function LoginForm() {
 
     try {
       // Example API call (adjust URL)
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
+      const data = await loginUser(form);
+      if (data?.token) {
         setMessage('✅ Login successful!');
         // Save token or redirect
         localStorage.setItem('token', data.token);
+        navigate('/');
       } else {
-        setMessage(data.message || '❌ Invalid credentials');
+        setMessage(data.error || '❌ Invalid credentials');
       }
     } catch (err) {
       setMessage('⚠️ Server error.');
@@ -124,9 +121,12 @@ export default function LoginForm() {
 
         <p className="mt-6 text-sm text-gray-600 text-center">
           Don’t have an account?{' '}
-          <a href="/register" className="text-emerald-600 hover:underline">
+          <Link
+            to="/register"
+            className="hover:underline text-blue-500 hover:blue-800"
+          >
             Register
-          </a>
+          </Link>
         </p>
       </div>
     </div>

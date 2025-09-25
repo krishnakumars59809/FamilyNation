@@ -1,13 +1,19 @@
 'use client';
-
+import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/logo.png';
+import { useUser } from '../../api/userApi';
 
 export default function RegisterForm() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  console.log('Rk form :', form);
+  const navigate = useNavigate();
+  const { registerUser } = useUser();
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,18 +29,13 @@ export default function RegisterForm() {
 
     try {
       // Example API call (adjust URL as needed)
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
+      const res = await registerUser(form);
+      if (res.token) {
         setMessage('✅ Registered successfully!');
-        setForm({ name: '', email: '', password: '' });
+        setForm({ firstName: '', lastName: '', email: '', password: '' });
+        navigate('/family-register');
       } else {
-        setMessage(data.message || '❌ Something went wrong.');
+        setMessage(res.error || '❌ Something went wrong.');
       }
     } catch (err) {
       setMessage('⚠️ Server error.');
@@ -70,16 +71,29 @@ export default function RegisterForm() {
           {/* Name */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              Name
+              First Name
             </label>
             <input
               type="text"
-              name="name"
-              value={form.name}
+              name="firstName"
+              value={form.firstName}
               onChange={handleChange}
               required
               className="w-full border-b-4 border-green-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-              placeholder="username"
+              placeholder="First Name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              className="w-full border-b-4 border-green-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+              placeholder="Last Name"
             />
           </div>
 
@@ -136,9 +150,9 @@ export default function RegisterForm() {
 
         <p className="mt-6 text-sm text-gray-600 text-center">
           Already have an account?{' '}
-          <a href="/login" className="text-emerald-600 hover:underline">
+          <Link to="/login" className="text-emerald-600 hover:underline">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>

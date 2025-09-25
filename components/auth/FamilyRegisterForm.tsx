@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type Member = {
