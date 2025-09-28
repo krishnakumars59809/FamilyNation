@@ -153,6 +153,8 @@ export default function FamilyRegisterForm() {
                 <input
                   type="number"
                   name="age"
+                  min={10}
+                  max={100}
                   value={member.age}
                   onChange={(e) => handleChange(index, e)}
                   required
@@ -224,7 +226,7 @@ export default function FamilyRegisterForm() {
                   value={member.needs.join('\n')} // join array into new lines
                   onChange={(e) => handleChange(index, e)}
                   placeholder="Enter each need on a new line"
-                  className="w-full bg-gray-100 border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full bg-gray-100 border-b-4 border-blue-300 px-4 py-2 text-gray-800 focus:ring-b-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   rows={3}
                 />
               </div>

@@ -9,13 +9,14 @@ import HappyFamilyImg from './assets/images/happy-family.png';
 import './index.css';
 import 'leaflet/dist/leaflet.css';
 import { SideBarMenu } from './components/sidebar/Sidebar';
-import { EyeIcon } from 'lucide-react';
+import { EyeIcon, MessageCircle } from 'lucide-react';
 import RegisterForm from './pages/auth/Registerform';
 import LoginForm from './pages/auth/Loginform';
 import FamilyRegisterForm from './pages/auth/FamilyRegisterForm';
 import Header from './components/header/index';
 import ProfilePage from './pages/ProfilePage';
 import { useUser } from './api/userApi';
+import Footer from './components/footer';
 
 const App = () => {
   const { user } = useUser();
@@ -31,10 +32,10 @@ const App = () => {
   return (
     <div className="relative flex h-screen font-sans overflow-hidden">
       {/* Background */}
-      <div
+      {/* <div
         className="fixed inset-0 w-full h-full bg-contain bg-center -z-20"
         style={{ backgroundImage: `url(${HappyFamilyImg})` }}
-      />
+      /> */}
       <div className="fixed inset-0 bg-black/20 -z-10" />
 
       {/* Sidebar */}
@@ -53,7 +54,7 @@ const App = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen} // toggle sidebar
         />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 transition-all duration-300">
+        <main className="flex-1 overflow-y-auto transition-all duration-300">
           <Routes>
             <Route
               path="/"
@@ -78,6 +79,7 @@ const App = () => {
             <Route path="/family-register" element={<FamilyRegisterForm />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
+          <Footer />
         </main>
       </div>
 
@@ -115,9 +117,15 @@ const App = () => {
       <div className="fixed bottom-8 right-8 z-40">
         <button
           onClick={() => (!user ? navigate('/login') : setChatbotOpen(true))}
-          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-6 lg:py-4 px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
+          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-4 md:py-6 lg:py-4 px-4 md:px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
-          <span>💬 We Need Help Now!</span>
+          <MessageCircle
+            size={20}
+            stroke="white"
+            fill="white"
+            className="text-white"
+          />
+          <span className="hidden md:block">We Need Help Now!</span>
         </button>
       </div>
 

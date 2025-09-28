@@ -100,6 +100,16 @@ export const useUser = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+  // ===== Get all family members by user ID =====
+  const getAllFamilyMembersByUserId = async (
+    userId: string
+  ): Promise<FamilyMember[]> => {
+    return apiClient<FamilyMember[]>(`/user/${userId}/family`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  };
+
   const updateUser = async (id: string, data: Partial<User>) =>
     apiClient(`/user/${id}`, {
       method: 'PUT',
@@ -157,5 +167,6 @@ export const useUser = () => {
     addFamilyMembers,
     updateFamilyMember,
     deleteFamilyMember,
+    getAllFamilyMembersByUserId,
   };
 };
