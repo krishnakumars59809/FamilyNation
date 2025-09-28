@@ -56,7 +56,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     useEffect(() => {
       setTimeout(() => {
         map.invalidateSize();
-      }, 100); // small delay to ensure container is ready
+      }, 100);
     }, [map]);
     return null;
   }
