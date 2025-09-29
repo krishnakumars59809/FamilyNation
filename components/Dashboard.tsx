@@ -218,9 +218,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {' '}
               {/* Changed justify-center to justify-start */}
               <button
-                onClick={() =>
-                  !user ? navigate('/login') : setChatbotOpen(true)
-                }
+                // onClick={() =>
+                //   !user ? navigate('/login') : setChatbotOpen(true)
+                // }
+                onClick={() => setChatbotOpen(true)}
                 className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-xl flex items-center justify-center"
               >
                 💬 We Need Help Now! Talk to Hazel

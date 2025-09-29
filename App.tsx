@@ -116,7 +116,8 @@ const App = () => {
       {/* Floating Chat Button */}
       <div className="fixed bottom-8 right-8 z-40">
         <button
-          onClick={() => (!user ? navigate('/login') : setChatbotOpen(true))}
+          // onClick={() => (!user ? navigate('/login') : setChatbotOpen(true))}
+          onClick={() => setChatbotOpen(true)}
           className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-4 md:py-6 lg:py-4 px-4 md:px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
           <MessageCircle
