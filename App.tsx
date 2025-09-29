@@ -84,10 +84,10 @@ const App = () => {
       </div>
 
       {/* Eye toggle button */}
-      <div className="fixed top-20 right-10 z-50">
+      <div className="fixed top-40 right-0 lg:right-4 z-50">
         <button
           onClick={() => setHidden(!isHidden)}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 rounded-full shadow-lg flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 shadow-lg flex items-center gap-2"
         >
           <EyeIcon className="w-5 h-5" />
         </button>
@@ -133,7 +133,7 @@ const App = () => {
       {isChatbotOpen && (
         <ChatProvider>
           <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-            <div className="relative w-full max-w-6xl h-[100vh] bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="relative w-full max-w-6xl h-[100vh] bg-white lg:rounded-xl shadow-lg overflow-hidden">
               <Chatbot onClose={() => setChatbotOpen(false)} />
             </div>
           </div>

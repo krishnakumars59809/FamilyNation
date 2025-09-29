@@ -192,7 +192,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="text-start lg:text-start mb-6 lg:mb-0 w-full">
                 {' '}
                 {/* Changed text-center to text-start */}
-                <h1 className="text-4xl lg:text-6xl text-white font-bold text-[#1E3A8A] font-montserrat">
+                <h1 className="text-4xl lg:text-6xl text-white font-bold font-montserrat">
                   Welcome to FamilyNation
                 </h1>
                 <p className="text-2xl text-white mt-4 font-lato italic">

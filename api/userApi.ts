@@ -104,7 +104,7 @@ export const useUser = () => {
   const getAllFamilyMembersByUserId = async (
     userId: string
   ): Promise<FamilyMember[]> => {
-    return apiClient<FamilyMember[]>(`/user/${userId}/family`, {
+    return apiClient<FamilyMember[]>(`/user/${userId}/getfamilymember`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });

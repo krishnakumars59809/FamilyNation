@@ -28,11 +28,27 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
   )}&background=0D9488&color=fff&bold=true`;
 
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Handle outside click
+  useEffect(() => {
+    const handleClickOutside = (event: { target: any }) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     navigate('/login');
+    setIsOpen(false);
   };
 
   const getUser = async () => {
@@ -41,6 +57,7 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
   useEffect(() => {
     getUser();
   }, []);
+
   return (
     <header className="bg-white shadow-md z-20 flex-shrink-0 relative">
       <div className="flex items-center justify-between h-20 px-6">
@@ -69,24 +86,26 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
         {/* </div> */}
 
         <div>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-1 lg:gap-4 items-center">
             <Link to="/">
               <img src={logo} className="h-10 w-10 md:h-14 w-14 bg-white" />
             </Link>
             {/* <Link to="/">
               <img src={familyNationLogo} width={50} height={50} className="" />
               </Link> */}
-            <div className="mt-2">
-              <span className="text-lg md:text-4xl text-black italic font-bold">
-                Family Nation
-              </span>
-            </div>
+            <Link to="/">
+              <div className="mt-2">
+                <span className="text-2xl md:text-4xl italic font-bold bg-gradient-to-r from-green-500 to-green-900 bg-clip-text text-transparent">
+                  FamilyNation
+                </span>
+              </div>
+            </Link>
           </div>
         </div>
 
         {/* Log Out */}
         <div className="flex items-center gap-4">
-          <div>
+          <div ref={dropdownRef}>
             {/* User Avatar */}
             {user && (
               <div
@@ -107,19 +126,19 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
             {/* Dropdown menu */}
             {isOpen && (
               <div
-                className="absolute left-170 top-150 mt-2 w-36 bg-white border border-gray-200 shadow-lg rounded-md
-                     z-50 flex flex-col text-sm"
-                onMouseEnter={() => setIsOpen(true)}
-                onMouseLeave={() => setIsOpen(false)}
+                className="absolute mt-6 bg-white border border-gray-200 shadow-lg rounded-md
+                     z-50 text-sm cursor-pointer"
+                // onMouseEnter={() => setIsOpen(true)}
+                // onMouseLeave={() => setIsOpen(false)}
               >
                 <Link to="/profile">
-                  <button className="px-4 py-2 text-left hover:bg-gray-100 w-full">
+                  <button className="px-4 py-2 text-left hover:bg-gray-100 w-full cursor-pointer">
                     Profile
                   </button>
                 </Link>
 
                 <button
-                  className="px-4 py-2 flex gap-2 text-left hover:bg-gray-100 w-full text-red-500"
+                  className="px-4 py-2 flex gap-2 text-left hover:bg-gray-100 w-full text-red-500 cursor-pointer"
                   onClick={handleLogout}
                 >
                   Logout

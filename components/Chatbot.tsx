@@ -3,6 +3,7 @@ import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../api/userApi';
+import { Volume2 } from 'lucide-react';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -65,14 +66,14 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         </div>
 
         {/* Family Profile Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="h-full bg-gray-50">
+          <div className="bg-white lg:rounded-xl p-2 shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">
               Meet the Johnson Family
             </h3>
 
             {/* Family Avatars Grid */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="h-[170px] md:h-[200px] flex-1 overflow-y-auto grid md:grid-cols-2 gap-4 mb-6">
               {/* Daughter */}
               <div className="bg-red-50 p-4 rounded-lg border border-red-100  ">
                 <div className="flex items-center space-x-3 mb-2">
@@ -182,9 +183,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         </div>
 
         {/* Start Chat Button */}
-        <div className="p-4">
+        <div className="p-2">
           <button
-            className="w-full bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
+            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
             onClick={() => setShowFamilyProfile(false)}
           >
             Start Assessment with Hazel
@@ -259,7 +260,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {/* Action Buttons */}
         <Link to="/recommended" className="p-4 flex gap-3">
           <button
-            className="flex-1 bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
+            className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
             onClick={onClose}
           >
             Show Recommended Professionals
@@ -268,6 +269,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       </div>
     );
   }
+
   // Main Chat Interface
   return (
     <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">
@@ -298,8 +300,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-2 ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
+            {msg.type !== 'user' && (
+              <button className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center">
+                <Volume2 size={20} />
+              </button>
+            )}
             <div
               className={`px-4 py-3 rounded-2xl max-w-[80%] ${
                 msg.type === 'user'

@@ -11,6 +11,8 @@ const UserProfile: React.FC = () => {
 
   const [user, setUser] = useState({
     name: data?.firstName || '',
+    firstName: data?.firstName || '',
+    lastName: data?.lastName || '',
     email: data?.email || '',
     userId: data?.id || '',
   });
@@ -92,16 +94,19 @@ const UserProfile: React.FC = () => {
   }, [data, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-sky-500 via-30% to-emerald-500 to-90% p-6">
+    <div className="min-h-screen bg-white/90 p-6">
+      <p className="p-2 text-2xl md:text-2xl font-bold">My Profile</p>
       <div className="h-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Profile Card */}
-        <div className="h-[420px] bg-white shadow-md rounded-lg p-6 flex flex-col">
+        <div className="h-[420px] bg-white shadow-lg rounded-lg p-6 flex flex-col">
           <img
             src={data?.profilePicture || familyProfile}
             alt="Profile"
             className="w-full h-30 rounded-lg object-cover mb-4"
           />
-          <h2 className="text-start text-xl font-semibold">{user.name}</h2>
+          <h2 className="text-start text-xl font-semibold">
+            {user.firstName} {user?.lastName}
+          </h2>
           <p className="text-gray-500">{user.email}</p>
         </div>
 
@@ -138,7 +143,7 @@ const UserProfile: React.FC = () => {
           </div>
 
           <h3 className="text-lg font-bold mt-6 mb-4">Family Members</h3>
-          <div className="space-y-6">
+          <div className="max-h-[350px] overflow-y-auto space-y-6">
             {familyMembers.map((member, index) => (
               <div
                 key={index}
@@ -166,7 +171,7 @@ const UserProfile: React.FC = () => {
                         value={member.name}
                         onChange={(e) => handleMemberChange(index, e)}
                         placeholder="Member Name"
-                        className="w-full bg-gray-100 border-b px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-green-500 focus:border-green-500 outline-none"
+                        className="w-full bg-gray-100 border-b px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       />
                     </div>
                     <div>
