@@ -3,28 +3,48 @@ import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../api/userApi';
-import { Volume2 } from 'lucide-react';
+import { Loader2, Mic, Square, Volume2 } from 'lucide-react';
+import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
     messages,
     currentQuestion,
     sendAnswer,
+    sendVoiceMessage,
     loading,
     chatCompleted,
     predictionData,
     showPrediction,
     setShowPrediction,
+    isProcessingVoice,
   } = useChat();
 
   const [input, setInput] = useState('');
   const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Voice recording hook
+  const {
+    isRecording,
+    audioBlob,
+    startRecording,
+    stopRecording,
+    resetRecording,
+  } = useVoiceRecorder();
+
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Handle when audio recording is completed
+  useEffect(() => {
+    if (audioBlob && !isRecording) {
+      sendVoiceMessage(audioBlob);
+      resetRecording();
+    }
+  }, [audioBlob, isRecording, sendVoiceMessage, resetRecording]);
 
   // Show loading state
   if (loading)
@@ -357,6 +377,47 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         )}
 
         <div ref={messagesEndRef} />
+      </div>
+
+      {/* Show voice recording status */}
+      {isRecording && (
+        <div className="flex justify-end">
+          <div className="mr-4 px-4 py-3 rounded-2xl max-w-[80%] bg-red-500 text-white rounded-br-none">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+              <p>Recording... Click stop when finished</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Show voice processing status */}
+      {isProcessingVoice && (
+        <div className="flex justify-end">
+          <div className="mr-4 px-4 py-3 rounded-2xl max-w-[80%] bg-blue-500 text-white rounded-br-none">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <p>Processing your voice message...</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Voice Record Button */}
+      <div className="mr-4 flex justify-end">
+        <button
+          className={`m-2 pl-2 h-10 w-10 rounded-full font-medium transition-colors ${
+            isRecording
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-[#0D9488] hover:bg-[#0c7c6f] text-white'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isProcessingVoice}
+        >
+          {isRecording ? (
+            <Square size={20} className="animate-pulse" />
+          ) : (
+            <Mic size={20} />
+          )}
+        </button>
       </div>
 
       {/* Input area */}

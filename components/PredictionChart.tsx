@@ -51,13 +51,20 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
       text: '#374151',
     };
 
-    // Chart dimensions (use rect.width/height instead of canvas.width)
-    const padding = 40;
+    // Chart dimensions (responsive for mobile)
+    let padding = 40;
+    let barWidth = 100;
+    let spacing = 80;
+
+    if (rect.width < 400) {
+      // adjust for small/mobile view
+      padding = 20;
+      barWidth = 40;
+      spacing = 30;
+    }
+
     const chartWidth = rect.width - padding * 2;
     const chartHeight = rect.height - padding * 2 - 40;
-    const barWidth = 100;
-    const spacing = 80;
-
     // Draw grid lines
     ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;

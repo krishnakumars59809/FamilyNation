@@ -15,6 +15,10 @@ interface Message {
   options?: string[];
 }
 
+interface VoiceMessage {
+  blob: Blob;
+  transcript?: string;
+}
 interface PredictionData {
   stabilityScore: number;
   riskLevel: 'low' | 'medium' | 'high';
@@ -30,11 +34,13 @@ interface ChatContextType {
   messages: Message[];
   currentQuestion: HazelQuestion | null;
   sendAnswer: (answer: string) => void;
+  sendVoiceMessage: (audioBlob: Blob) => Promise<void>;
   loading: boolean;
   chatCompleted: boolean;
   predictionData: PredictionData | null;
   showPrediction: boolean;
   setShowPrediction: (show: boolean) => void;
+  isProcessingVoice: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -46,6 +52,7 @@ export const ChatProvider = ({
   children: ReactNode;
   onComplete?: (responses: string[]) => void;
 }) => {
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<HazelQuestion | null>(
     null
@@ -178,17 +185,77 @@ export const ChatProvider = ({
     };
   };
 
+  const sendVoiceMessage = async (audioBlob: Blob) => {
+    if (!sessionId) return;
+
+    setIsProcessingVoice(true);
+
+    try {
+      // In a real app, you would send the audio to a speech-to-text API
+      // For now, we'll simulate transcription with a timeout
+
+      // Simulate API call to transcribe audio
+      const transcribedText = await transcribeAudio(audioBlob);
+
+      if (transcribedText) {
+        // Send the transcribed text as a regular message
+        await sendAnswer(transcribedText);
+      }
+    } catch (error) {
+      console.error('Error processing voice message:', error);
+      // Add error message to chat
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `bot-error-${Date.now()}`,
+          type: 'bot',
+          content:
+            "Sorry, I couldn't process your voice message. Please try typing your response.",
+        },
+      ]);
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  };
+
+  // Mock transcription function - replace with actual API call
+  const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // In a real implementation, you would call:
+        // - Google Speech-to-Text API
+        // - Azure Cognitive Services
+        // - AWS Transcribe
+        // - Or any other speech recognition service
+
+        // For demo purposes, we'll return a mock response
+        const mockResponses = [
+          "I've been feeling very stressed lately",
+          'We need help with family counseling',
+          'My children are having difficulties at school',
+          "We're experiencing financial pressure",
+          'I think we need professional support',
+        ];
+        const randomResponse =
+          mockResponses[Math.floor(Math.random() * mockResponses.length)];
+        resolve(randomResponse);
+      }, 2000);
+    });
+  };
+
   return (
     <ChatContext.Provider
       value={{
         messages,
         currentQuestion,
         sendAnswer,
+        sendVoiceMessage,
         loading,
         chatCompleted,
         predictionData,
         showPrediction,
         setShowPrediction,
+        isProcessingVoice,
       }}
     >
       {children}
