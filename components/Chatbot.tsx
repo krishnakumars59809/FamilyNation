@@ -75,13 +75,19 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         type: 'audio/mpeg',
       });
       const res = await uploadAudioFile(file);
-      setInput(res.text); // transcription appears in input
+      const formatted = capitalizeFirstLetter(res.text);
+      setInput(formatted); // transcription appears in input
       recordingIdRef.current = `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     } catch (err) {
       console.error(err);
       setInput('Upload failed');
     }
   };
+
+  function capitalizeFirstLetter(text: string) {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
