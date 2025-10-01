@@ -3,13 +3,14 @@ const API_BASE = import.meta.env.VITE_API_BASE;
 console.log('API_BASE:', API_BASE);
 export async function apiClient<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  isVoice = false
 ): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options, // spread first
       headers: {
-        'Content-Type': 'application/json',
+        ...(isVoice ? {} : { 'Content-Type': 'application/json' }),
         ...(options.headers || {}), // merge, custom headers override
       },
     });
