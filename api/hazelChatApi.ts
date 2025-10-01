@@ -15,3 +15,16 @@ export const sendReply = (
     body: JSON.stringify({ sessionId, answer }),
   });
 };
+
+export const uploadAudioFile = (file: File): Promise<{ text: string }> => {
+  const formData = new FormData();
+  formData.append('audio', file);
+  return apiClient(
+    `/chat/transcribe`,
+    {
+      method: 'POST',
+      body: formData,
+    },
+    true
+  );
+};

@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
-import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../api/userApi';
+import { Link } from 'react-router-dom';
 import { Volume2 } from 'lucide-react';
+import { ChatInput } from './chat/ChatInput';
+import { uploadAudioFile } from '../api/hazelChatApi';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -20,6 +21,67 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [input, setInput] = useState('');
   const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [recording, setRecording] = useState<Blob | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const recordingIdRef = useRef(
+    `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+  );
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleMicClick = async () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.addEventListener('dataavailable', (event) => {
+          if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        });
+
+        mediaRecorder.addEventListener('stop', async () => {
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: 'audio/mpeg',
+          });
+          setRecording(audioBlob);
+          setIsRecording(false);
+          await handleUpload(audioBlob);
+        });
+
+        mediaRecorder.start();
+      } catch (err) {
+        console.error('Mic error', err);
+        alert('Cannot access microphone');
+        setIsRecording(false);
+      }
+    } else {
+      mediaRecorderRef.current?.stop();
+    }
+  };
+
+  const handleUpload = async (blob: Blob) => {
+    try {
+      const file = new File([blob], `${recordingIdRef.current}.mp3`, {
+        type: 'audio/mpeg',
+      });
+      const res = await uploadAudioFile(file);
+      setInput(res.text); // transcription appears in input
+      recordingIdRef.current = `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    } catch (err) {
+      console.error(err);
+      setInput('Upload failed');
+    }
+  };
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -360,7 +422,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       {/* Input area */}
-      {currentQuestion && !currentQuestion.options && !chatCompleted && (
+      {/* {currentQuestion && !currentQuestion.options && !chatCompleted && (
         <div className="border-t border-gray-200 p-4 bg-white">
           <div className="flex gap-3">
             <input
@@ -393,7 +455,14 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             Hazel is here to listen and support your family
           </p>
         </div>
-      )}
+      )} */}
+      <ChatInput
+        input={input}
+        setInput={setInput}
+        sendAnswer={sendAnswer}
+        isRecording={isRecording}
+        handleMicClick={handleMicClick}
+      />
     </div>
   );
 };
