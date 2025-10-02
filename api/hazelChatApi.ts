@@ -28,3 +28,10 @@ export const uploadAudioFile = (file: File): Promise<{ text: string }> => {
     true
   );
 };
+
+export const textToAudio = (text: string): Promise<ReplyResponse> => {
+  return apiClient(`/chat/textToAudio`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
+};

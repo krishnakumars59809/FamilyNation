@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
 import { Link } from 'react-router-dom';
-import { Volume2 } from 'lucide-react';
+import { Volume1, Volume2, VolumeX } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
-import { uploadAudioFile } from '../api/hazelChatApi';
+import { textToAudio, uploadAudioFile } from '../api/hazelChatApi';
+import { playAudio } from '../utils/playAudio';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -25,6 +26,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [recording, setRecording] = useState<Blob | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [voiceGender, setVoiceGender] = useState<'MALE' | 'FEMALE' | 'NEUTRAL'>(
+    'NEUTRAL'
+  );
 
   const recordingIdRef = useRef(
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -88,6 +93,22 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
+
+  const handleTextToAudio = async (text: string) => {
+    try {
+      const res: any = await textToAudio(text);
+      if (!res.audio) {
+        return;
+      }
+      // if API returns base64 string
+      const audioBuffer = Uint8Array.from(atob(res.audio), (c) =>
+        c.charCodeAt(0)
+      ).buffer;
+      playAudio(audioBuffer, setIsPlaying);
+    } catch (err) {
+      console.error('TTS failed:', err);
+    }
+  };
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -354,6 +375,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             <span className="font-bold">Hazel</span>
             <p className="text-xs opacity-90">Family Support Agent</p>
           </div>
+          {/* <select className="bg-transparent" value={voiceGender} onChange={(e) => setVoiceGender(e.target.value as any)}>
+  <option className="bg-transparent" value="MALE">Male</option>
+  <option className="bg-transparent" value="FEMALE">Female</option>
+  <option className="bg-transparent" value="NEUTRAL">Neutral</option>
+</select> */}
         </div>
         <button
           onClick={onClose}
@@ -370,11 +396,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             key={msg.id}
             className={`flex gap-2 ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            {msg.type !== 'user' && (
-              <button className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center">
-                <Volume2 size={20} />
-              </button>
-            )}
+            <button
+              className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center"
+              onClick={() => handleTextToAudio(msg.content)}
+            >
+              {isPlaying ? <Volume2 className="text-green-500" /> : <Volume1 />}
+            </button>
+
             <div
               className={`px-4 py-3 rounded-2xl max-w-[80%] ${
                 msg.type === 'user'
