@@ -1,4 +1,8 @@
-export const playAudio = (audioBuffer: ArrayBuffer, setIsPlaying: any) => {
+export const playAudio = (
+  audioBuffer: ArrayBuffer,
+  setIsPlaying: any,
+  onFinish?: () => void
+) => {
   const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
   const audioUrl = URL.createObjectURL(audioBlob);
   const audio = new Audio(audioUrl);
@@ -10,5 +14,6 @@ export const playAudio = (audioBuffer: ArrayBuffer, setIsPlaying: any) => {
   audio.onended = () => {
     setIsPlaying(false);
     URL.revokeObjectURL(audioUrl); // cleanup
+    onFinish?.();
   };
 };

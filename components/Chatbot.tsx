@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { PredictionChart } from './PredictionChart';
 import { Link } from 'react-router-dom';
-import { Volume1, Volume2, VolumeX } from 'lucide-react';
+import { Volume1, Volume2 } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
@@ -30,6 +30,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [voiceGender, setVoiceGender] = useState<'MALE' | 'FEMALE' | 'NEUTRAL'>(
     'NEUTRAL'
   );
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const recordingIdRef = useRef(
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -94,19 +96,20 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  const handleTextToAudio = async (text: string) => {
+  const handleTextToAudio = async (text: string, onFinish?: () => void) => {
     try {
       const res: any = await textToAudio(text);
       if (!res.audio) {
         return;
       }
       // if API returns base64 string
-      const audioBuffer = Uint8Array.from(atob(res.audio), (c) =>
-        c.charCodeAt(0)
-      ).buffer;
-      playAudio(audioBuffer, setIsPlaying);
+      const audioBuffer = Uint8Array.from(atob(res?.audio), (c) =>
+        c?.charCodeAt(0)
+      )?.buffer;
+      playAudio(audioBuffer, setIsPlaying, onFinish);
     } catch (err) {
       console.error('TTS failed:', err);
+      setPlayingId(null);
     }
   };
 
@@ -391,43 +394,59 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       {/* Chat body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-2 ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <button
-              className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center"
-              onClick={() => handleTextToAudio(msg.content)}
-            >
-              {isPlaying ? <Volume2 className="text-green-500" /> : <Volume1 />}
-            </button>
+        {messages?.map((msg) => {
+          const isThisPlaying = playingId === msg?.id;
 
+          return (
             <div
-              className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                msg.type === 'user'
-                  ? 'bg-[#1E3A8A] text-white rounded-br-none'
-                  : 'bg-[#0D9488] text-white rounded-bl-none'
-              }`}
+              key={msg?.id}
+              className={`flex gap-2 ${msg?.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="leading-relaxed">{msg.content}</p>
+              <button
+                className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center"
+                onClick={() => {
+                  if (isThisPlaying) {
+                    audioRef?.current?.pause();
+                    setPlayingId(null);
+                  } else {
+                    setPlayingId(msg?.id);
+                    handleTextToAudio(msg?.content, () => setPlayingId(null));
+                  }
+                }}
+              >
+                {isThisPlaying ? (
+                  <Volume2 className="text-black" />
+                ) : (
+                  <Volume1 />
+                )}
+              </button>
 
-              {msg.options && (
-                <div className="mt-3 flex flex-col gap-2">
-                  {msg.options.map((opt) => (
-                    <button
-                      key={opt}
-                      className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl text-left transition-all duration-200 border border-white border-opacity-30"
-                      onClick={() => sendAnswer(opt)}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div
+                className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                  msg?.type === 'user'
+                    ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                    : 'bg-[#0D9488] text-white rounded-bl-none'
+                }`}
+              >
+                <p className="leading-relaxed">{msg?.content}</p>
+
+                {msg?.options && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {msg?.options?.map((opt) => (
+                      <button
+                        key={opt}
+                        className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl text-left transition-all duration-200 border border-white border-opacity-30"
+                        onClick={() => sendAnswer(opt)}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Show "analyzing" message when completed but before prediction */}
         {chatCompleted && !showPrediction && (
