@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import ActionPlan from './components/ActionPlan';
 import { PlaceholderView } from './components/PlaceholderView';
@@ -17,7 +17,7 @@ import Header from './components/header/index';
 import ProfilePage from './pages/ProfilePage';
 import { useUser } from './api/userApi';
 import Footer from './components/footer';
-
+import './index.css';
 const App = () => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="relative flex h-screen font-sans overflow-hidden">
+    <div className="relative flex h-screen font-sans italic overflow-hidden">
       {/* Background */}
       {/* <div
         className="fixed inset-0 w-full h-full bg-contain bg-center -z-20"
@@ -40,7 +40,7 @@ const App = () => {
 
       {/* Sidebar */}
       <div
-        className={`flex-shrink-0 bg-[#0D9488] h-full shadow-xl transition-all duration-300 ${
+        className={`flex-shrink-0 bg-gradient-to-r from-emerald-900 from-10% to-emerald-900 to-90% h-full shadow-xl transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-0'
         } overflow-hidden`}
       >
@@ -84,18 +84,19 @@ const App = () => {
       </div>
 
       {/* Eye toggle button */}
-      <div className="fixed top-40 right-0 lg:right-4 z-50">
-        <button
-          onClick={() => setHidden(!isHidden)}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 shadow-lg flex items-center gap-2"
-        >
-          <EyeIcon className="w-5 h-5" />
-        </button>
+      <div className="fixed top-64 lg:top-40 right-0 lg:right-4 z-50">
+        <Link to="https://www.amazon.com" target="_blank">
+          <button
+            // onClick={() => setHidden(!isHidden)}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 shadow-lg flex items-center gap-2"
+          >
+            <EyeIcon className="w-5 h-5" />
+          </button>
+        </Link>
       </div>
 
       {/* Fullscreen hide overlay */}
       <>
-        {/* Fullscreen hide overlay */}
         <div
           className={`fixed inset-0 z-40 flex justify-center items-center transform ease-in-out
     ${
@@ -114,11 +115,11 @@ const App = () => {
       </>
 
       {/* Floating Chat Button */}
-      <div className="fixed bottom-8 right-8 z-40">
+      {/* <div className="fixed bottom-8 right-8 z-40">
         <button
           // onClick={() => (!user ? navigate('/login') : setChatbotOpen(true))}
           onClick={() => setChatbotOpen(true)}
-          className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-4 md:py-6 lg:py-4 px-4 md:px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
+          className="bg-gradient-to-r from-[#1d4ed8] to-[#1e40af] hover:from-[#1e40af] hover:to-[#1e40af] text-white font-bold py-4 md:py-6 lg:py-4 px-4 md:px-6 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 ease-in-out flex items-center gap-3"
         >
           <MessageCircle
             size={20}
@@ -126,9 +127,9 @@ const App = () => {
             fill="white"
             className="text-white"
           />
-          <span className="hidden md:block">We Need Help Now!</span>
+          <span className="hidden md:block">Need Help Now ?</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Chat popup */}
       {isChatbotOpen && (

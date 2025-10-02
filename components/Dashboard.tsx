@@ -14,7 +14,7 @@ import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import { useUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Heart, MapPin, Users } from 'lucide-react';
+import { Globe, Heart, MapPin, MessageCircle, Users } from 'lucide-react';
 import { Button } from './ui/button';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -179,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           style={{ backgroundImage: `url(${FamilyImage})` }}
         />
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60 -z-10" />
+        <div className="absolute inset-0 bg-black/40 -z-10" />
 
         {/* Content */}
         <div className="relative z-20 p-[2px] md:p-6 min-h-screen w-full max-w-7xl mx-auto">
@@ -192,16 +192,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="text-start lg:text-start mb-6 lg:mb-0 w-full">
                 {' '}
                 {/* Changed text-center to text-start */}
-                <h1 className="text-4xl lg:text-6xl text-white font-bold font-montserrat">
+                <h1 className=" text-4xl lg:text-6xl text-white font-bold font-montserrat">
                   Welcome to FamilyNation
                 </h1>
-                <p className="text-2xl text-white mt-4 font-lato italic">
+                <p className=" text-2xl text-white mt-4 font-lato italic">
                   "It Starts at Home."
                 </p>
               </div>
             </div>
             {/* Description Text */}
-            <div className="text-start w-full">
+            <div className=" w-full">
               {' '}
               {/* Added text-start wrapper */}
               <p className="text-white text-lg leading-relaxed font-lato max-w-4xl">
@@ -222,9 +222,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 //   !user ? navigate('/login') : setChatbotOpen(true)
                 // }
                 onClick={() => setChatbotOpen(true)}
-                className="bg-gradient-to-r from-[#F87171] to-[#EF4444] hover:from-[#EF4444] hover:to-[#DC2626] text-white font-bold py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-xl flex items-center justify-center"
+                className="border border-white hover:bg-red-500 text-white py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-lg flex items-center justify-center"
               >
-                💬 We Need Help Now! Talk to Hazel
+                💬 Need Help Now ? Talk to Hazel !
               </button>
             </div>
           </div>
@@ -232,46 +232,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Location card */}
-      <div className="w-full bg-white flex flex-col lg:flex-row justify-start items-stretch gap-8">
-        {/* Location Card */}
-        <div className="w-full p-6 backdrop-blur flex flex-col lg:flex-row gap-6">
-          {/* Left: Location Details */}
-          <div className="w-full lg:w-1/4 text-start">
-            <h1 className="flex gap-2 text-2xl font-bold mb-4">
-              <MapPin className="mt-1 text-red-500 h-6 w-6" />
-              Your Location
-            </h1>
+
+      {/* <div className="w-full bg-[#737373] flex flex-col lg:flex-row justify-start items-stretch gap-8"> */}
+      {/* Location Card */}
+      {/* <div className="w-full p-6 backdrop-blur flex flex-col lg:flex-row gap-6"> */}
+      {/* Left: Location Details */}
+      {/* <div className="w-full lg:w-1/4 text-start">
 
             {loading && <p>⏳ Loading...</p>}
             {error && <p className="text-red-500">⚠️ {error}</p>}
 
             {location && (
-              <div className="bg-gray-100 rounded-lg p-4 shadow-sm space-y-2 text-start">
+              <div className="h-full bg-gray-100 p-4 shadow-sm space-y-2 text-start">
+                <h1 className="flex text-black gap-2 text-2xl font-bold mb-4">
+                  <MapPin className="mt-1 text-red-500 h-6 w-6" />
+                  Your Location
+                </h1>
                 {' '}
-                {/* Added text-start */}
+            
                 {location.city && (
                   <p className="text-sm">
-                    <strong>City:</strong> {location.city}
+                    <strong>City :</strong> {location.city}
                   </p>
                 )}
                 {location.region && (
                   <p className="text-sm">
-                    <strong>Region:</strong> {location.region}
+                    <strong>Region :</strong> {location.region}
                   </p>
                 )}
                 {location.country && (
                   <p className="text-sm">
-                    <strong>Country:</strong> {location.country}
+                    <strong>Country :</strong> {location.country}
                   </p>
                 )}
               </div>
             )}
-          </div>
+          </div> */}
 
-          {/* Right: Map */}
-          {location && (
+      {/* Right: Map */}
+      {/* {location && (
             <div className="w-full lg:w-3/4">
-              <div className="h-64 w-full rounded-lg overflow-hidden shadow-lg border">
+              <div className="h-64 w-full overflow-hidden shadow-lg border">
                 <MapContainer
                   center={[location.lat, location.lon]}
                   zoom={13}
@@ -291,9 +292,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </MapContainer>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          )} */}
+      {/* </div>
+      </div> */}
 
       {/* About Section */}
       <div className="py-20 bg-white">
