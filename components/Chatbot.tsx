@@ -26,6 +26,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [recording, setRecording] = useState<Blob | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [voiceGender, setVoiceGender] = useState<'MALE' | 'FEMALE' | 'NEUTRAL'>(
     'NEUTRAL'
@@ -77,6 +78,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   };
 
   const handleUpload = async (blob: Blob) => {
+    setIsProcessing(true);
     try {
       const file = new File([blob], `${recordingIdRef.current}.mp3`, {
         type: 'audio/mpeg',
@@ -84,6 +86,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       const res = await uploadAudioFile(file);
       const formatted = capitalizeFirstLetter(res.text);
       setInput(formatted); // transcription appears in input
+      setIsProcessing(false);
       recordingIdRef.current = `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     } catch (err) {
       console.error(err);
@@ -515,6 +518,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         sendAnswer={sendAnswer}
         isRecording={isRecording}
         handleMicClick={handleMicClick}
+        isProcessing={isProcessing}
       />
     </div>
   );
