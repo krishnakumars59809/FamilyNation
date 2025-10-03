@@ -102,7 +102,6 @@ export const ChatInput: FC<ChatInputProps> = ({
             sendAnswer(input);
             setInput('');
           }}
-          disabled={!canInteract}
         >
           Send
         </button>
