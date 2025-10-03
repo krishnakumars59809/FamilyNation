@@ -17,6 +17,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     predictionData,
     showPrediction,
     setShowPrediction,
+    setStart,
   } = useChat();
 
   const [input, setInput] = useState('');
@@ -98,6 +99,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
+  function handleStartHazel() {
+    setShowFamilyProfile(false);
+    setStart(true);
+  }
 
   const handleTextToAudio = async (text: string, onFinish?: () => void) => {
     try {
@@ -119,6 +124,22 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    if (!messages || messages?.length === 0 || showFamilyProfile) return;
+
+    const lastMsg = messages?.[messages?.length - 1];
+
+    if (lastMsg?.type !== 'user') {
+      let textToSpeak = lastMsg?.content;
+
+      if (lastMsg?.options && lastMsg?.options?.length > 0) {
+        textToSpeak += '. Options are: ' + lastMsg.options.join(', ') + '.';
+      }
+
+      handleTextToAudio(textToSpeak);
+    }
   }, [messages]);
 
   // Show loading state
@@ -281,7 +302,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         <div className="p-2">
           <button
             className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-            onClick={() => setShowFamilyProfile(false)}
+            onClick={handleStartHazel}
           >
             Start Assessment with Hazel
           </button>
