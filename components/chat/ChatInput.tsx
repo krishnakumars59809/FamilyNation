@@ -18,20 +18,39 @@ export const ChatInput: FC<ChatInputProps> = ({
 }) => (
   <div className="border-t p-3 bg-white">
     <div className="flex items-center gap-2">
-      {/* Text input */}
-      <input
-        type="text"
-        className="flex-1 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0D9488] sm:text-sm md:text-base"
-        placeholder="Type your message..."
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && input.trim()) {
-            sendAnswer(input);
-            setInput('');
-          }
-        }}
-      />
+      <div className="flex-1 relative">
+        <input
+          type="text"
+          className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0D9488] sm:text-sm md:text-base transition-all duration-300"
+          placeholder={isRecording ? '' : 'Type your message...'}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && input.trim()) {
+              sendAnswer(input);
+              setInput('');
+            }
+          }}
+        />
+
+        {/* Wave animation container */}
+        {isRecording && (
+          <div className="absolute inset-0 flex items-center justify-between px-4">
+            <div className="flex items-end space-x-[1px] w-full h-full py-3">
+              {Array.from({ length: 120 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex-1 max-w-[2px] bg-red-500 rounded-full animate-wave"
+                  style={{
+                    height: `${Math.sin((index / 30) * Math.PI * 4) * 15 + 50}%`,
+                    animationDelay: `${(index % 4) * 0.15}s`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Conditionally render Mic or Send */}
       {!input.trim() ? (
