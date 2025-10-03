@@ -32,8 +32,16 @@ export default function FooterComponent() {
         <div>
           <h2 className="text-2xl font-bold">Family Nation</h2>
           <p className="mt-3 text-sm leading-relaxed">
-            Building a strong family community with care, support, and trusted
-            services. We connect families with resources that matter most.
+            FamilyNation maintains that with improved and sustained balance and
+            stability in our homes comes the likelihood for a greater quality of
+            life in our schools, communities, workplaces and all aspects
+            spanning the human condition and experience. This is why we’re doing
+            what we’re about to announce. For families. For counselors and
+            therapists. For health care professionals. For small & medium
+            businesses and for large enterprises alike. Stay tuned for more
+            details but feel free to reach out if you have any questions or
+            require preliminary information by emailing us at
+            info@familynation.com.
           </p>
         </div>
 
@@ -82,15 +90,15 @@ export default function FooterComponent() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2">
               <MapPin size={18} />
-              <span>123 xyz Street,Coimbatore,Tamilnadu.</span>
+              <span>San Francisco, CA</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone size={18} />
-              <span>Helpline: +91 xxxx xxxx</span>
+              <span>Phone: (925) 984-3173</span>
             </li>
             <li className="flex items-center gap-2">
               <Mail size={18} />
-              <span>www.support@familynation.com</span>
+              <span>www.info@familynation.com</span>
             </li>
           </ul>
           {/* Social Icons */}
