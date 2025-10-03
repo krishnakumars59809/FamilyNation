@@ -32,6 +32,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [voiceGender, setVoiceGender] = useState<'MALE' | 'FEMALE' | 'NEUTRAL'>(
     'NEUTRAL'
   );
+  const [canInteract, setCanInteract] = useState(true);
+
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -106,18 +108,24 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
   const handleTextToAudio = async (text: string, onFinish?: () => void) => {
     try {
-      const res: any = await textToAudio(text);
-      if (!res.audio) {
-        return;
+      if (canInteract) {
+        setCanInteract(false);
+        const res: any = await textToAudio(text);
+        if (!res?.audio) return;
+
+        const audioBuffer = Uint8Array.from(atob(res?.audio), (c) =>
+          c?.charCodeAt(0)
+        )?.buffer;
+
+        playAudio(audioBuffer, setIsPlaying, () => {
+          setCanInteract(true);
+          if (onFinish) onFinish();
+        });
       }
-      // if API returns base64 string
-      const audioBuffer = Uint8Array.from(atob(res?.audio), (c) =>
-        c?.charCodeAt(0)
-      )?.buffer;
-      playAudio(audioBuffer, setIsPlaying, onFinish);
     } catch (err) {
-      console.error('TTS failed:', err);
+      console?.error('TTS failed:', err);
       setPlayingId(null);
+      setCanInteract(true);
     }
   };
 
@@ -461,6 +469,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                         key={opt}
                         className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl text-left transition-all duration-200 border border-white border-opacity-30"
                         onClick={() => sendAnswer(opt)}
+                        disabled={!canInteract}
                       >
                         {opt}
                       </button>
@@ -540,6 +549,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         isRecording={isRecording}
         handleMicClick={handleMicClick}
         isProcessing={isProcessing}
+        disabled={!canInteract}
       />
     </div>
   );

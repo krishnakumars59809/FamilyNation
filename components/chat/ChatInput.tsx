@@ -8,6 +8,7 @@ interface ChatInputProps {
   isRecording: boolean;
   isProcessing: boolean;
   handleMicClick: () => void;
+  canInteract?: boolean;
 }
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -17,6 +18,7 @@ export const ChatInput: FC<ChatInputProps> = ({
   isRecording,
   handleMicClick,
   isProcessing,
+  canInteract,
 }) => (
   <div className="border-t p-3 bg-white">
     <div className="flex items-center gap-2">
@@ -100,6 +102,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             sendAnswer(input);
             setInput('');
           }}
+          disabled={!canInteract}
         >
           Send
         </button>
