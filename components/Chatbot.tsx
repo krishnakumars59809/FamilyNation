@@ -134,21 +134,22 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (!messages || messages?.length === 0 || showFamilyProfile) return;
+  // TODO
+  // useEffect(() => {
+  //   if (!messages || messages?.length === 0 || showFamilyProfile) return;
 
-    const lastMsg = messages?.[messages?.length - 1];
+  //   const lastMsg = messages?.[messages?.length - 1];
 
-    if (lastMsg?.type !== 'user') {
-      let textToSpeak = lastMsg?.content;
+  //   if (lastMsg?.type !== 'user') {
+  //     let textToSpeak = lastMsg?.content;
 
-      if (lastMsg?.options && lastMsg?.options?.length > 0) {
-        textToSpeak += '. Options are: ' + lastMsg.options.join(', ') + '.';
-      }
+  //     if (lastMsg?.options && lastMsg?.options?.length > 0) {
+  //       textToSpeak += '. Options are: ' + lastMsg.options.join(', ') + '.';
+  //     }
 
-      handleTextToAudio(textToSpeak);
-    }
-  }, [messages]);
+  //     handleTextToAudio(textToSpeak);
+  //   }
+  // }, [messages]);
 
   // Show loading state
   if (loading)
