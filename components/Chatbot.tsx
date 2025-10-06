@@ -443,7 +443,19 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                     setPlayingId(null);
                   } else {
                     setPlayingId(msg?.id);
-                    handleTextToAudio(msg?.content, () => setPlayingId(null));
+
+                    let textToSpeak = '';
+
+                    if (msg?.type === 'user') {
+                      textToSpeak = `Your answer is: You have chosen ${msg?.content}`;
+                    } else {
+                      textToSpeak = msg?.content;
+                      if (msg?.options && msg?.options?.length > 0) {
+                        textToSpeak += `. Options are: ${msg?.options?.join(', ')}.`;
+                      }
+                    }
+
+                    handleTextToAudio(textToSpeak, () => setPlayingId(null));
                   }
                 }}
               >
