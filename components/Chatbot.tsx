@@ -44,9 +44,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [isGeminiThinking, setIsGeminiThinking] = useState(false);
   const [freeChatInput, setFreeChatInput] = useState('');
   const [geminiError, setGeminiError] = useState<string | null>(null);
-  const [lastGeminiRequest, setLastGeminiRequest] = useState<
-    { text: string; systemPrompt: string; useSearch: boolean } | null
-  >(null);
+  const [lastGeminiRequest, setLastGeminiRequest] = useState<{
+    text: string;
+    systemPrompt: string;
+    useSearch: boolean;
+  } | null>(null);
 
   const recordingIdRef = useRef(
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -91,11 +93,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     }
   };
 
-
   // Gemini API helper
-  const GEMINI_API_KEY = "AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM" || '';
+  const GEMINI_API_KEY = 'AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM' || '';
   // Add this near the top of your component
-  console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
+  console.log(
+    'API Key loaded:',
+    import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No'
+  );
   const sendToGemini = async (
     text: string,
     systemPrompt: string,
@@ -105,15 +109,17 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
       const payload = {
-        contents: [{
-          parts: [{ text }]
-        }],
+        contents: [
+          {
+            parts: [{ text }],
+          },
+        ],
         systemInstruction: {
-          parts: [{ text: systemPrompt }]
+          parts: [{ text: systemPrompt }],
         },
         ...(useSearch && {
-          tools: [{ google_search: {} }]
-        })
+          tools: [{ google_search: {} }],
+        }),
       };
 
       const response = await fetch(apiUrl, {
@@ -126,11 +132,16 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to fetch from Gemini API');
+        throw new Error(
+          errorData.error?.message || 'Failed to fetch from Gemini API'
+        );
       }
 
       const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from model';
+      return (
+        data.candidates?.[0]?.content?.parts?.[0]?.text ||
+        'No response from model'
+      );
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw error;
@@ -152,11 +163,15 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         try {
           return await sendToGemini(text, systemPrompt, false);
         } catch (err2) {
-          setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+          setGeminiError(
+            'Unable to fetch suggestions. Please check connectivity or API key.'
+          );
           throw err2;
         }
       } else {
-        setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+        setGeminiError(
+          'Unable to fetch suggestions. Please check connectivity or API key.'
+        );
         throw err;
       }
     }
@@ -177,11 +192,18 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       (async () => {
         try {
           setIsGeminiThinking(true);
-          const reply = await requestGemini(userQuery, systemPrompt, true, true);
+          const reply = await requestGemini(
+            userQuery,
+            systemPrompt,
+            true,
+            true
+          );
           const botMsg =
             reply ||
             "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
-          setGeminiThread([{ id: `bot-${Date.now()}`, type: 'bot', content: botMsg }]);
+          setGeminiThread([
+            { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
+          ]);
           handleTextToAudio(botMsg);
         } catch (e) {
           setGeminiThread((prev) => [
@@ -189,7 +211,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             {
               id: `bot-${Date.now()}`,
               type: 'bot',
-              content: "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
+              content:
+                "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
             },
           ]);
         } finally {
@@ -202,7 +225,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const sendFreeChatToGemini = async () => {
     const text = freeChatInput.trim();
     if (!text || isGeminiThinking) return;
-    const newUser = { id: `user-${Date.now()}`, type: 'user' as const, content: text };
+    const newUser = {
+      id: `user-${Date.now()}`,
+      type: 'user' as const,
+      content: text,
+    };
     setGeminiThread((prev) => [...prev, newUser]);
     setFreeChatInput('');
     setIsGeminiThinking(true);
@@ -250,7 +277,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     }
   };
 
-
   // Define this function above your return statement (inside your component)
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -259,7 +285,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     setInput('');
 
     // Add user message to thread
-    setGeminiThread(prev => [
+    setGeminiThread((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
@@ -276,7 +302,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       const response = await sendToGemini(userMessage, systemPrompt);
 
       // Add bot response to thread
-      setGeminiThread(prev => [
+      setGeminiThread((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
@@ -307,7 +333,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
   const handleGeminiResponse = async (message: string) => {
     // Add user message to thread
-    setGeminiThread(prev => [
+    setGeminiThread((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
@@ -324,7 +350,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       const response = await sendToGemini(message, systemPrompt);
 
       // Add bot response
-      setGeminiThread(prev => [
+      setGeminiThread((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
@@ -345,7 +371,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
       } catch (audioError) {
         console.error('Error playing audio:', audioError);
       }
-
     } catch (error) {
       console.error('Error sending message to Gemini:', error);
       setGeminiError('Failed to get response from AI. Please try again.');
@@ -441,9 +466,9 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   // NEW: Show family profile screen first
   if (showFamilyProfile) {
     return (
-      <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="flex flex-col h-[100vh] w-full  bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
+        <div className="h-[10vh] p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
               <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
@@ -465,14 +490,14 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         </div>
 
         {/* Family Profile Content */}
-        <div className="h-full bg-gray-50">
+        <div className="h-[40vh] bg-gray-50">
           <div className="bg-white lg:rounded-xl p-2 shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">
               Meet the Johnson Family
             </h3>
 
             {/* Family Avatars Grid */}
-            <div className="h-[170px] md:h-[200px] flex-1 overflow-y-auto grid md:grid-cols-2 gap-4 mb-6">
+            <div className="h-[30vh] flex-1 overflow-y-auto grid md:grid-cols-2 gap-4 mb-6">
               {/* Daughter */}
               <div className="bg-red-50 p-4 rounded-lg border border-red-100  ">
                 <div className="flex items-center space-x-3 mb-2">
@@ -556,28 +581,30 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                 </ul>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Family Challenges Summary */}
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-              <h4 className="font-semibold text-yellow-800 mb-2">
-                Family Challenges:
-              </h4>
-              <ul className="text-xs text-yellow-700 space-y-1">
-                <li>• Parents have combative marriage</li>
-                <li>• Disagreement on solutions</li>
-                <li>• Stress spills over to school/work</li>
-                <li>• Risk of family breakdown</li>
-              </ul>
-            </div>
+        <div className="h-[40vh] p-2">
+          {/* Family Challenges Summary */}
+          <div className="h-[20vh] bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+            <h4 className="font-semibold text-yellow-800 mb-2">
+              Family Challenges:
+            </h4>
+            <ul className="text-xs text-yellow-700 space-y-1">
+              <li>• Parents have combative marriage</li>
+              <li>• Disagreement on solutions</li>
+              <li>• Stress spills over to school/work</li>
+              <li>• Risk of family breakdown</li>
+            </ul>
+          </div>
 
-            {/* Narration from document */}
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-              <p className="text-sm text-gray-700 italic">
-                "This family looks like so many others. Stress, conflict, and
-                hardship don't stay at home — they spill over into schools,
-                workplaces, and communities."
-              </p>
-            </div>
+          {/* Narration from document */}
+          <div className="h-[20vh] mt-4">
+            <p className="p-4 text-sm text-gray-700 italic bg-gray-100 rounded-lg">
+              "This family looks like so many others. Stress, conflict, and
+              hardship don't stay at home — they spill over into schools,
+              workplaces, and communities."
+            </p>
           </div>
         </div>
 
@@ -643,12 +670,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                 Risk Level:
               </span>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${predictionData.riskLevel === 'high'
-                  ? 'bg-red-100 text-red-800'
-                  : predictionData.riskLevel === 'medium'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-green-100 text-green-800'
-                  }`}
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  predictionData.riskLevel === 'high'
+                    ? 'bg-red-100 text-red-800'
+                    : predictionData.riskLevel === 'medium'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-green-100 text-green-800'
+                }`}
               >
                 {predictionData.riskLevel.toUpperCase()}
               </span>
@@ -740,10 +768,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               </button>
 
               <div
-                className={`px-4 py-3 rounded-2xl max-w-[80%] ${msg?.type === 'user'
-                  ? 'bg-[#1E3A8A] text-white rounded-br-none'
-                  : 'bg-[#0D9488] text-white rounded-bl-none'
-                  }`}
+                className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                  msg?.type === 'user'
+                    ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                    : 'bg-[#0D9488] text-white rounded-bl-none'
+                }`}
               >
                 <p className="leading-relaxed">{msg?.content}</p>
 
@@ -789,7 +818,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
           </div>
         )}
 
-
         {/* Gemini continuation thread and composer */}
         {chatCompleted && (
           <div className="mt-3 space-y-3">
@@ -806,10 +834,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                 className={`flex gap-2 ${m.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${m.type === 'user'
-                    ? 'bg-[#1E3A8A] text-white rounded-br-none'
-                    : 'bg-[#0D9488] text-white rounded-bl-none'
-                    }`}
+                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                    m.type === 'user'
+                      ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                      : 'bg-[#0D9488] text-white rounded-bl-none'
+                  }`}
                 >
                   <p className="leading-relaxed">{m.content}</p>
                 </div>
