@@ -1,23 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { PredictionChart } from './PredictionChart';
-import { Link } from 'react-router-dom';
 import { Volume1, Volume2 } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
-  const {
-    messages,
-    currentQuestion,
-    sendAnswer,
-    loading,
-    chatCompleted,
-    predictionData,
-    showPrediction,
-    setShowPrediction,
-  } = useChat();
+  const { messages, currentQuestion, sendAnswer, loading, chatCompleted } = useChat();
 
   const [input, setInput] = useState('');
   const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
@@ -32,6 +21,16 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   );
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Gemini continuation state
+  const [geminiThread, setGeminiThread] = useState<
+    { id: string; type: 'user' | 'bot'; content: string }[]
+  >([]);
+  const [isGeminiThinking, setIsGeminiThinking] = useState(false);
+  const [freeChatInput, setFreeChatInput] = useState('');
+  const [geminiError, setGeminiError] = useState<string | null>(null);
+  const [lastGeminiRequest, setLastGeminiRequest] = useState<
+    { text: string; systemPrompt: string; useSearch: boolean } | null
+  >(null);
 
   const recordingIdRef = useRef(
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -40,6 +39,164 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Gemini API helper
+  const GEMINI_API_KEY = (import.meta as any)?.env?.VITE_GEMINI_API_KEY || '';
+  // Add this near the top of your component
+console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
+  const sendToGemini = async (
+    text: string,
+    systemPrompt: string,
+    useSearch = false
+  ): Promise<string> => {
+    try {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+      
+      const payload = {
+        contents: [{
+          parts: [{ text }]
+        }],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        ...(useSearch && {
+          tools: [{ google_search: {} }]
+        })
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to fetch from Gemini API');
+      }
+
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from model';
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      throw error;
+    }
+  };
+
+  const requestGemini = async (
+    text: string,
+    systemPrompt: string,
+    useSearch: boolean,
+    retryOnSearchFail = true
+  ): Promise<string> => {
+    setLastGeminiRequest({ text, systemPrompt, useSearch });
+    setGeminiError(null);
+    try {
+      return await sendToGemini(text, systemPrompt, useSearch);
+    } catch (err) {
+      if (useSearch && retryOnSearchFail) {
+        try {
+          return await sendToGemini(text, systemPrompt, false);
+        } catch (err2) {
+          setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+          throw err2;
+        }
+      } else {
+        setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+        throw err;
+      }
+    }
+  };
+
+  // Start Gemini continuation once assessment completes
+  useEffect(() => {
+    const alreadyStarted = geminiThread.length > 0 || isGeminiThinking;
+    if (chatCompleted && !alreadyStarted) {
+      const userAnswers = messages
+        ?.filter((m) => m.type === 'user')
+        ?.map((m) => m.content)
+        ?.join(', ');
+      const systemPrompt =
+        'You are Hazel, a compassionate, practical family support assistant. Be brief, empathetic, actionable. Offer 2-3 concrete next steps not exceeding 50 words.';
+      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 50 words`;
+
+      (async () => {
+        try {
+          setIsGeminiThinking(true);
+          const reply = await requestGemini(userQuery, systemPrompt, true, true);
+          const botMsg =
+            reply ||
+            "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
+          setGeminiThread([{ id: `bot-${Date.now()}`, type: 'bot', content: botMsg }]);
+          handleTextToAudio(botMsg);
+        } catch (e) {
+          setGeminiThread((prev) => [
+            ...prev,
+            {
+              id: `bot-${Date.now()}`,
+              type: 'bot',
+              content: "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
+            },
+          ]);
+        } finally {
+          setIsGeminiThinking(false);
+        }
+      })();
+    }
+  }, [chatCompleted]);
+
+  const sendFreeChatToGemini = async () => {
+    const text = freeChatInput.trim();
+    if (!text || isGeminiThinking) return;
+    const newUser = { id: `user-${Date.now()}`, type: 'user' as const, content: text };
+    setGeminiThread((prev) => [...prev, newUser]);
+    setFreeChatInput('');
+    setIsGeminiThinking(true);
+    try {
+      const systemPrompt =
+        'You are Hazel, a compassionate, succinct family support assistant. Keep replies short, warm, and actionable. not exceeding 50 words';
+      const reply = await requestGemini(text, systemPrompt, false, false);
+      const botMsg = reply || "I couldn't process that. Could you rephrase?";
+      setGeminiThread((prev) => [
+        ...prev,
+        { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
+      ]);
+      handleTextToAudio(botMsg);
+    } catch (e) {
+      setGeminiThread((prev) => [
+        ...prev,
+        {
+          id: `bot-${Date.now()}`,
+          type: 'bot',
+          content: "I'm offline at the moment. Please try again in a bit.",
+        },
+      ]);
+    } finally {
+      setIsGeminiThinking(false);
+    }
+  };
+
+  const retryLastGemini = async () => {
+    if (!lastGeminiRequest || isGeminiThinking) return;
+    const { text, systemPrompt, useSearch } = lastGeminiRequest;
+    setIsGeminiThinking(true);
+    setGeminiError(null);
+    try {
+      const reply = await requestGemini(text, systemPrompt, useSearch, true);
+      const botMsg = reply || "I couldn't process that. Could you rephrase?";
+      setGeminiThread((prev) => [
+        ...prev,
+        { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
+      ]);
+      handleTextToAudio(botMsg);
+    } catch (e) {
+      // error already captured
+    } finally {
+      setIsGeminiThinking(false);
+    }
+  };
 
   const handleMicClick = async () => {
     if (!isRecording) {
@@ -287,80 +444,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     );
   }
 
-  // Show prediction screen after chat completes
-  if (showPrediction && predictionData) {
-    return (
-      <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-[#F87171] rounded-full"></div>
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
-            </div>
-            <div>
-              <span className="font-bold">Hazel</span>
-              <p className="text-xs opacity-90">Family Stability Analysis</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Prediction Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Family Stability Forecast
-            </h3>
-
-            {/* Chart Component */}
-            <PredictionChart data={predictionData} />
-
-            {/* Prediction Message */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <p className="text-blue-800 text-sm leading-relaxed">
-                {predictionData.message}
-              </p>
-            </div>
-
-            {/* Risk Level Indicator */}
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">
-                Risk Level:
-              </span>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  predictionData.riskLevel === 'high'
-                    ? 'bg-red-100 text-red-800'
-                    : predictionData.riskLevel === 'medium'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                }`}
-              >
-                {predictionData.riskLevel.toUpperCase()}
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Action Buttons */}
-        <Link to="/recommended" className="p-4 flex gap-3">
-          <button
-            className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-            onClick={onClose}
-          >
-            Show Recommended Professionals
-          </button>
-        </Link>
-      </div>
-    );
-  }
+  // Prediction view removed
 
   // Main Chat Interface
   return (
@@ -449,7 +533,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         })}
 
         {/* Show "analyzing" message when completed but before prediction */}
-        {chatCompleted && !showPrediction && (
+        {chatCompleted && (
           <div className="flex justify-start">
             <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none">
               <p className="leading-relaxed">
@@ -468,6 +552,68 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                 ></div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Gemini continuation thread and composer */}
+        {chatCompleted && (
+          <div className="mt-3 space-y-3">
+            {isGeminiThinking && (
+              <div className="flex justify-start">
+                <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none opacity-90">
+                  <p className="italic">Hazel is preparing next steps...</p>
+                </div>
+              </div>
+            )}
+            {geminiThread.map((m) => (
+              <div
+                key={m.id}
+                className={`flex gap-2 ${m.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                    m.type === 'user'
+                      ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                      : 'bg-[#0D9488] text-white rounded-bl-none'
+                  }`}
+                >
+                  <p className="leading-relaxed">{m.content}</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center gap-2 pt-2">
+              {/* <input
+                type="text"
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent"
+                placeholder="Ask Hazel a follow-up..."
+                value={freeChatInput}
+                onChange={(e) => setFreeChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    sendFreeChatToGemini();
+                  }
+                }}
+              />
+              <button
+                className="bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!freeChatInput.trim() || isGeminiThinking}
+                onClick={sendFreeChatToGemini}
+              >
+                Send
+              </button> */}
+              {geminiError && (
+                <button
+                  className="ml-2 bg-[#1E3A8A] hover:bg-[#152e6b] text-white px-3 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isGeminiThinking}
+                  onClick={retryLastGemini}
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+            {geminiError && (
+              <div className="text-xs text-red-600 pt-1">{geminiError}</div>
+            )}
           </div>
         )}
 
@@ -509,13 +655,155 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
           </p>
         </div>
       )} */}
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        sendAnswer={sendAnswer}
-        isRecording={isRecording}
-        handleMicClick={handleMicClick}
-      />
+{chatCompleted ? (
+        <div className="border-t border-gray-200 p-4 bg-white">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter' && input.trim()) {
+                  const userMessage = input;
+                  setInput('');
+                  
+                  // Add user message to thread
+                  setGeminiThread(prev => [...prev, { 
+                    id: Date.now().toString(), 
+                    type: 'user', 
+                    content: userMessage 
+                  }]);
+                  
+                  try {
+                    setIsGeminiThinking(true);
+                    const systemPrompt = 'You are a helpful assistant for family matters. Be kind and supportive in your responses. not exceeding more than 50 words';
+                    const response = await sendToGemini(userMessage, systemPrompt);
+                    
+                    // Add bot response to thread
+                    setGeminiThread(prev => [...prev, { 
+                      id: (Date.now() + 1).toString(), 
+                      type: 'bot', 
+                      content: response 
+                    }]);
+                    
+                    // Speak the response
+                    try {
+                      const audioUrl = await textToAudio(response);
+                      if (audioUrl) {
+                        await playAudio(audioUrl, () => {
+                          setIsPlaying(false);
+                          setPlayingId(null);
+                        });
+                      }
+                    } catch (audioError) {
+                      console.error('Error playing audio:', audioError);
+                    }
+                    
+                  } catch (error) {
+                    console.error('Error sending message to Gemini:', error);
+                    setGeminiError('Failed to get response from AI. Please try again.');
+                  } finally {
+                    setIsGeminiThinking(false);
+                  }
+                }
+              }}
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent"
+              placeholder="Ask me anything..."
+              disabled={isGeminiThinking}
+            />
+            <button
+              onClick={async () => {
+                if (!input.trim()) return;
+                
+                const userMessage = input;
+                setInput('');
+                
+                // Add user message to thread
+                setGeminiThread(prev => [...prev, { 
+                  id: Date.now().toString(), 
+                  type: 'user', 
+                  content: userMessage 
+                }]);
+                
+                try {
+                  setIsGeminiThinking(true);
+                  const systemPrompt = 'You are a helpful assistant for family matters. Be kind and supportive in your responses.not exceeding 50 words';
+                  const response = await sendToGemini(userMessage, systemPrompt);
+                  
+                  // Add bot response to thread
+                  setGeminiThread(prev => [...prev, { 
+                    id: (Date.now() + 1).toString(), 
+                    type: 'bot', 
+                    content: response 
+                  }]);
+                  
+                  // Speak the response
+                  try {
+                    const audioUrl = await textToAudio(response);
+                    if (audioUrl) {
+                      await playAudio(audioUrl, () => {
+                        setIsPlaying(false);
+                        setPlayingId(null);
+                      });
+                    }
+                  } catch (audioError) {
+                    console.error('Error playing audio:', audioError);
+                  }
+                  
+                } catch (error) {
+                  console.error('Error sending message to Gemini:', error);
+                  setGeminiError('Failed to get response from AI. Please try again.');
+                } finally {
+                  setIsGeminiThinking(false);
+                }
+              }}
+              className="bg-[#0D9488] text-white px-4 py-2 rounded-lg hover:bg-[#0c7c6f] transition-colors disabled:opacity-50"
+              disabled={!input.trim() || isGeminiThinking}
+            >
+              {isGeminiThinking ? '...' : 'Send'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="border-t border-gray-200 p-4 bg-white">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && input.trim()) {
+                  sendAnswer(input);
+                  setInput('');
+                }
+              }}
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent"
+              placeholder={
+                currentQuestion?.options?.length 
+                  ? 'Please select an option above' 
+                  : 'Type your answer...'
+              }
+              disabled={!currentQuestion || (currentQuestion?.options?.length ?? 0) > 0}
+            />
+            <button
+              onClick={() => {
+                if (input.trim()) {
+                  sendAnswer(input);
+                  setInput('');
+                }
+              }}
+              className="bg-[#0D9488] text-white px-4 py-2 rounded-lg hover:bg-[#0c7c6f] transition-colors disabled:opacity-50"
+              disabled={
+                !input.trim() || 
+                !currentQuestion || 
+                (currentQuestion?.options?.length ?? 0) > 0
+              }
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

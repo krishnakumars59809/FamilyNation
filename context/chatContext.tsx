@@ -91,14 +91,14 @@ export const ChatProvider = ({
   }, []);
 
   // NEW: Auto-show prediction when chat completes
-  useEffect(() => {
-    if (chatCompleted && predictionData) {
-      const timer = setTimeout(() => {
-        setShowPrediction(true);
-      }, 1500); // Show prediction after 1.5 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [chatCompleted, predictionData]);
+  // useEffect(() => {
+  //   if (chatCompleted && predictionData) {
+  //     const timer = setTimeout(() => {
+  //       setShowPrediction(true);
+  //     }, 1500); // Show prediction after 1.5 seconds
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [chatCompleted, predictionData]);
 
   const sendAnswer = async (answer: string) => {
     if (!sessionId) return;
