@@ -9,6 +9,11 @@ interface ChatInputProps {
   isProcessing: boolean;
   handleMicClick: () => void;
   canInteract?: boolean;
+  chatCompleted: boolean;
+  currentQuestion: any;
+  isGeminiThinking: boolean;
+  handleSendMessage: () => void;
+  handleGeminiResponse: (userMessage: string) => Promise<void>;
 }
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -19,6 +24,11 @@ export const ChatInput: FC<ChatInputProps> = ({
   handleMicClick,
   isProcessing,
   canInteract,
+  chatCompleted,
+  currentQuestion,
+  isGeminiThinking,
+  handleSendMessage,
+  handleGeminiResponse,
 }) => (
   <div className="border-t p-3 bg-white">
     <div className="flex items-center gap-2">
@@ -29,12 +39,23 @@ export const ChatInput: FC<ChatInputProps> = ({
           placeholder={isRecording ? '' : 'Type your message...'}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
+          // onKeyDown={(e) => {
+          //   if (e.key === 'Enter' && input.trim()) {
+          //     sendAnswer(input);
+          //     setInput('');
+          //   }
+          // }}
+          onKeyDown={async (e) => {
             if (e.key === 'Enter' && input.trim()) {
-              sendAnswer(input);
+              const userMessage = input;
+              sendAnswer(chatCompleted ? userMessage : input);
               setInput('');
+              if (chatCompleted) {
+                await handleGeminiResponse(userMessage);
+              }
             }
           }}
+          disabled={chatCompleted ? isGeminiThinking : !currentQuestion || (currentQuestion?.options?.length ?? 0) > 0}
         />
 
         {/* Wave animation container */}
@@ -98,10 +119,25 @@ export const ChatInput: FC<ChatInputProps> = ({
       ) : (
         <button
           className="bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-2 rounded-xl sm:text-sm md:text-base"
+          // onClick={() => {
+          //   sendAnswer(input);
+          //   setInput('');
+          // }}
           onClick={() => {
-            sendAnswer(input);
-            setInput('');
+            if (chatCompleted) {
+              handleSendMessage();
+            } else if (input.trim()) {
+              sendAnswer(input);
+              setInput('');
+            }
           }}
+          disabled={
+            chatCompleted
+              ? isGeminiThinking
+              : !input.trim() ||
+              !currentQuestion ||
+              (currentQuestion?.options?.length ?? 0) > 0
+          }
         >
           Send
         </button>
