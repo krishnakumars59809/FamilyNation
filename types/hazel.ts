@@ -18,4 +18,5 @@ export interface ReplyResponse {
   question?: HazelQuestion;
   completed?: boolean;
   responses?: string[];
+  audio?: string; // Base64 encoded audio data
 }

@@ -57,9 +57,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   }, [messages]);
 
   // Gemini API helper
-  const GEMINI_API_KEY = (import.meta as any)?.env?.VITE_GEMINI_API_KEY || '';
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
   // Add this near the top of your component
-console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
+  console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
+  
   const sendToGemini = async (
     text: string,
     systemPrompt: string,
@@ -249,189 +250,6 @@ console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No
     }
   };
 
-  // Gemini API helper
-  const GEMINI_API_KEY = 'AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM' || '';
-  // Add this near the top of your component
-  console.log(
-    'API Key loaded:',
-    import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No'
-  );
-  const sendToGemini = async (
-    text: string,
-    systemPrompt: string,
-    useSearch = false
-  ): Promise<string> => {
-    try {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
-      const payload = {
-        contents: [
-          {
-            parts: [{ text }],
-          },
-        ],
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        ...(useSearch && {
-          tools: [{ google_search: {} }],
-        }),
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error?.message || 'Failed to fetch from Gemini API'
-        );
-      }
-
-      const data = await response.json();
-      return (
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        'No response from model'
-      );
-    } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      throw error;
-    }
-  };
-
-  const requestGemini = async (
-    text: string,
-    systemPrompt: string,
-    useSearch: boolean,
-    retryOnSearchFail = true
-  ): Promise<string> => {
-    setLastGeminiRequest({ text, systemPrompt, useSearch });
-    setGeminiError(null);
-    try {
-      return await sendToGemini(text, systemPrompt, useSearch);
-    } catch (err) {
-      if (useSearch && retryOnSearchFail) {
-        try {
-          return await sendToGemini(text, systemPrompt, false);
-        } catch (err2) {
-          setGeminiError(
-            'Unable to fetch suggestions. Please check connectivity or API key.'
-          );
-          throw err2;
-        }
-      } else {
-        setGeminiError(
-          'Unable to fetch suggestions. Please check connectivity or API key.'
-        );
-        throw err;
-      }
-    }
-  };
-
-  // Start Gemini continuation once assessment completes
-  useEffect(() => {
-    const alreadyStarted = geminiThread.length > 0 || isGeminiThinking;
-    if (chatCompleted && !alreadyStarted) {
-      const userAnswers = messages
-        ?.filter((m) => m.type === 'user')
-        ?.map((m) => m.content)
-        ?.join(', ');
-      const systemPrompt =
-        'You are Hazel, a compassionate, practical family support assistant. Be brief, empathetic, actionable. Offer 2-3 concrete next steps not exceeding 50 words.';
-      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 50 words`;
-
-      (async () => {
-        try {
-          setIsGeminiThinking(true);
-          const reply = await requestGemini(
-            userQuery,
-            systemPrompt,
-            true,
-            true
-          );
-          const botMsg =
-            reply ||
-            "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
-          setGeminiThread([
-            { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
-          ]);
-          handleTextToAudio(botMsg);
-        } catch (e) {
-          setGeminiThread((prev) => [
-            ...prev,
-            {
-              id: `bot-${Date.now()}`,
-              type: 'bot',
-              content:
-                "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
-            },
-          ]);
-        } finally {
-          setIsGeminiThinking(false);
-        }
-      })();
-    }
-  }, [chatCompleted]);
-
-  const sendFreeChatToGemini = async () => {
-    const text = freeChatInput.trim();
-    if (!text || isGeminiThinking) return;
-    const newUser = {
-      id: `user-${Date.now()}`,
-      type: 'user' as const,
-      content: text,
-    };
-    setGeminiThread((prev) => [...prev, newUser]);
-    setFreeChatInput('');
-    setIsGeminiThinking(true);
-    try {
-      const systemPrompt =
-        'You are Hazel, a compassionate, succinct family support assistant. Keep replies short, warm, and actionable. not exceeding 50 words';
-      const reply = await requestGemini(text, systemPrompt, false, false);
-      const botMsg = reply || "I couldn't process that. Could you rephrase?";
-      setGeminiThread((prev) => [
-        ...prev,
-        { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
-      ]);
-      handleTextToAudio(botMsg);
-    } catch (e) {
-      setGeminiThread((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          type: 'bot',
-          content: "I'm offline at the moment. Please try again in a bit.",
-        },
-      ]);
-    } finally {
-      setIsGeminiThinking(false);
-    }
-  };
-
-  const retryLastGemini = async () => {
-    if (!lastGeminiRequest || isGeminiThinking) return;
-    const { text, systemPrompt, useSearch } = lastGeminiRequest;
-    setIsGeminiThinking(true);
-    setGeminiError(null);
-    try {
-      const reply = await requestGemini(text, systemPrompt, useSearch, true);
-      const botMsg = reply || "I couldn't process that. Could you rephrase?";
-      setGeminiThread((prev) => [
-        ...prev,
-        { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
-      ]);
-      handleTextToAudio(botMsg);
-    } catch (e) {
-      // error already captured
-    } finally {
-      setIsGeminiThinking(false);
-    }
-  };
 
   // Define this function above your return statement (inside your component)
   const handleSendMessage = async () => {
@@ -469,9 +287,13 @@ console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No
 
       // Speak the response
       try {
-        const audioUrl = await textToAudio(response);
-        if (audioUrl) {
-          await playAudio(audioUrl, () => {
+        const audioResponse = await textToAudio(response);
+        if (audioResponse?.audio) {
+          const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
+            c?.charCodeAt(0)
+          )?.buffer;
+          
+          await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
           });
@@ -517,9 +339,13 @@ console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No
 
       // Speak the response
       try {
-        const audioUrl = await textToAudio(response);
-        if (audioUrl) {
-          await playAudio(audioUrl, () => {
+        const audioResponse = await textToAudio(response);
+        if (audioResponse?.audio) {
+          const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
+            c?.charCodeAt(0)
+          )?.buffer;
+          
+          await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
           });
