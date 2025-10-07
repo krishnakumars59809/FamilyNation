@@ -1,7 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { PredictionChart } from './PredictionChart';
-import { Link } from 'react-router-dom';
 import { Volume1, Volume2 } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { textToAudio, uploadAudioFile } from '../api/hazelChatApi';
@@ -58,48 +56,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleMicClick = async () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-
-        mediaRecorder.addEventListener('dataavailable', (event) => {
-          if (event.data.size > 0) audioChunksRef.current.push(event.data);
-        });
-
-        mediaRecorder.addEventListener('stop', async () => {
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: 'audio/mpeg',
-          });
-          setRecording(audioBlob);
-          setIsRecording(false);
-          await handleUpload(audioBlob);
-        });
-
-        mediaRecorder.start();
-      } catch (err) {
-        console.error('Mic error', err);
-        alert('Cannot access microphone');
-        setIsRecording(false);
-      }
-    } else {
-      mediaRecorderRef.current?.stop();
-    }
-  };
-
   // Gemini API helper
-  const GEMINI_API_KEY = 'AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM' || '';
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
   // Add this near the top of your component
-  console.log(
-    'API Key loaded:',
-    import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No'
-  );
+  console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
+  
   const sendToGemini = async (
     text: string,
     systemPrompt: string,
@@ -107,19 +68,17 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   ): Promise<string> => {
     try {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
+      
       const payload = {
-        contents: [
-          {
-            parts: [{ text }],
-          },
-        ],
+        contents: [{
+          parts: [{ text }]
+        }],
         systemInstruction: {
-          parts: [{ text: systemPrompt }],
+          parts: [{ text: systemPrompt }]
         },
         ...(useSearch && {
-          tools: [{ google_search: {} }],
-        }),
+          tools: [{ google_search: {} }]
+        })
       };
 
       const response = await fetch(apiUrl, {
@@ -132,16 +91,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.error?.message || 'Failed to fetch from Gemini API'
-        );
+        throw new Error(errorData.error?.message || 'Failed to fetch from Gemini API');
       }
 
       const data = await response.json();
-      return (
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        'No response from model'
-      );
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from model';
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw error;
@@ -163,15 +117,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         try {
           return await sendToGemini(text, systemPrompt, false);
         } catch (err2) {
-          setGeminiError(
-            'Unable to fetch suggestions. Please check connectivity or API key.'
-          );
+          setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
           throw err2;
         }
       } else {
-        setGeminiError(
-          'Unable to fetch suggestions. Please check connectivity or API key.'
-        );
+        setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
         throw err;
       }
     }
@@ -185,25 +135,27 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         ?.filter((m) => m.type === 'user')
         ?.map((m) => m.content)
         ?.join(', ');
-      const systemPrompt =
-        'You are Hazel, a compassionate, practical family support assistant. Be brief, empathetic, actionable. Offer 2-3 concrete next steps not exceeding 50 words.';
-      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 50 words`;
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+
+Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+
+You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+
+Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+
+Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+
+The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
+      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 20 words and strictly within 2-3 senetences only`;
 
       (async () => {
         try {
           setIsGeminiThinking(true);
-          const reply = await requestGemini(
-            userQuery,
-            systemPrompt,
-            true,
-            true
-          );
+          const reply = await requestGemini(userQuery, systemPrompt, true, true);
           const botMsg =
             reply ||
             "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
-          setGeminiThread([
-            { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
-          ]);
+          setGeminiThread([{ id: `bot-${Date.now()}`, type: 'bot', content: botMsg }]);
           handleTextToAudio(botMsg);
         } catch (e) {
           setGeminiThread((prev) => [
@@ -211,8 +163,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
             {
               id: `bot-${Date.now()}`,
               type: 'bot',
-              content:
-                "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
+              content: "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
             },
           ]);
         } finally {
@@ -225,17 +176,22 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const sendFreeChatToGemini = async () => {
     const text = freeChatInput.trim();
     if (!text || isGeminiThinking) return;
-    const newUser = {
-      id: `user-${Date.now()}`,
-      type: 'user' as const,
-      content: text,
-    };
+    const newUser = { id: `user-${Date.now()}`, type: 'user' as const, content: text };
     setGeminiThread((prev) => [...prev, newUser]);
     setFreeChatInput('');
     setIsGeminiThinking(true);
     try {
-      const systemPrompt =
-        'You are Hazel, a compassionate, succinct family support assistant. Keep replies short, warm, and actionable. not exceeding 50 words';
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+
+Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+
+You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+
+Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+
+Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+
+The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
       const reply = await requestGemini(text, systemPrompt, false, false);
       const botMsg = reply || "I couldn't process that. Could you rephrase?";
       setGeminiThread((prev) => [
@@ -277,6 +233,42 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     }
   };
 
+  const handleMicClick = async () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.addEventListener('dataavailable', (event) => {
+          if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        });
+
+        mediaRecorder.addEventListener('stop', async () => {
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: 'audio/mpeg',
+          });
+          setRecording(audioBlob);
+          setIsRecording(false);
+          await handleUpload(audioBlob);
+        });
+
+        mediaRecorder.start();
+      } catch (err) {
+        console.error('Mic error', err);
+        alert('Cannot access microphone');
+        setIsRecording(false);
+      }
+    } else {
+      mediaRecorderRef.current?.stop();
+    }
+  };
+
+
   // Define this function above your return statement (inside your component)
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -296,8 +288,17 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
     try {
       setIsGeminiThinking(true);
-      const systemPrompt =
-        'You are a helpful assistant for family matters. Be kind and supportive in your responses, not exceeding 50 words.';
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+
+Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+
+You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+
+Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+
+Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+
+The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
 
       const response = await sendToGemini(userMessage, systemPrompt);
 
@@ -313,9 +314,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       // Speak the response
       try {
-        const audioUrl = await textToAudio(response);
-        if (audioUrl) {
-          await playAudio(audioUrl, () => {
+        const audioResponse = await textToAudio(response);
+        if (audioResponse?.audio) {
+          const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
+            c?.charCodeAt(0)
+          )?.buffer;
+          
+          await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
           });
@@ -344,8 +349,17 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
     try {
       setIsGeminiThinking(true);
-      const systemPrompt =
-        'You are a helpful assistant for family matters. Be kind and supportive in your responses, not exceeding 50 words.';
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+
+Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+
+You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+
+Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+
+Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+
+The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
 
       const response = await sendToGemini(message, systemPrompt);
 
@@ -361,9 +375,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       // Speak the response
       try {
-        const audioUrl = await textToAudio(response);
-        if (audioUrl) {
-          await playAudio(audioUrl, () => {
+        const audioResponse = await textToAudio(response);
+        if (audioResponse?.audio) {
+          const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
+            c?.charCodeAt(0)
+          )?.buffer;
+          
+          await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
           });
@@ -621,80 +639,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     );
   }
 
-  // Show prediction screen after chat completes
-  if (showPrediction && predictionData) {
-    return (
-      <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-[#F87171] rounded-full"></div>
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
-            </div>
-            <div>
-              <span className="font-bold">Hazel</span>
-              <p className="text-xs opacity-90">Family Stability Analysis</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Prediction Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Family Stability Forecast
-            </h3>
-
-            {/* Chart Component */}
-            <PredictionChart data={predictionData} />
-
-            {/* Prediction Message */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <p className="text-blue-800 text-sm leading-relaxed">
-                {predictionData.message}
-              </p>
-            </div>
-
-            {/* Risk Level Indicator */}
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">
-                Risk Level:
-              </span>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  predictionData.riskLevel === 'high'
-                    ? 'bg-red-100 text-red-800'
-                    : predictionData.riskLevel === 'medium'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                }`}
-              >
-                {predictionData.riskLevel.toUpperCase()}
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Action Buttons */}
-        <Link to="/recommended" className="p-4 flex gap-3">
-          <button
-            className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-            onClick={onClose}
-          >
-            Show Recommended Professionals
-          </button>
-        </Link>
-      </div>
-    );
-  }
+  // Prediction view removed
 
   // Main Chat Interface
   return (

@@ -41,6 +41,7 @@ interface ChatContextType {
   showPrediction: boolean;
   setShowPrediction: (show: boolean) => void;
   isProcessingVoice: boolean;
+  setStart: (start: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
