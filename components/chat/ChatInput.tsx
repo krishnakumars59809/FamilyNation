@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Send, Square } from 'lucide-react';
 
 interface ChatInputProps {
   input: string;
@@ -35,8 +35,14 @@ export const ChatInput: FC<ChatInputProps> = ({
       <div className="flex-1 relative">
         <input
           type="text"
-          className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0D9488] sm:text-sm md:text-base transition-all duration-300"
-          placeholder={isRecording ? '' : 'Type your message...'}
+          className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1e40af] sm:text-sm md:text-base transition-all duration-300"
+          placeholder={
+            isProcessing
+              ? 'Processing...'
+              : isRecording
+                ? ' '
+                : 'Type your message...'
+          }
           value={input}
           onChange={(e) => setInput(e.target.value)}
           // onKeyDown={(e) => {
@@ -76,7 +82,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex-1 max-w-[2px] bg-red-500 rounded-full animate-wave"
+                  className="flex-1 max-w-[2px] bg-gray-700 rounded-full animate-wave"
                   style={{
                     height: `${Math.sin((index / 30) * Math.PI * 4) * 15 + 50}%`,
                     animationDelay: `${(index % 4) * 0.15}s`,
@@ -91,8 +97,8 @@ export const ChatInput: FC<ChatInputProps> = ({
       {/* Conditionally render Mic or Send */}
       {!input.trim() ? (
         <button
-          className={`p-3 rounded-full transition-colors flex items-center justify-center
-          ${isRecording ? 'bg-red-600 animate-pulse' : 'bg-[#0D9488] hover:bg-[#0c7c6f]'}`}
+          className={`p-4 rounded-full transition-colors flex items-center justify-center
+          ${isRecording ? 'bg-red-600 animate-pulse' : 'bg-[#1e40af] hover:bg-[#1e3a8a]'}`}
           onClick={handleMicClick}
         >
           {isRecording ? (
@@ -122,7 +128,7 @@ export const ChatInput: FC<ChatInputProps> = ({
         </button>
       ) : (
         <button
-          className="bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-2 rounded-xl sm:text-sm md:text-base"
+          className="bg-[#1e40af] hover:bg-[#1e3a8a] text-white p-4 rounded-full sm:text-sm md:text-base"
           // onClick={() => {
           //   sendAnswer(input);
           //   setInput('');
@@ -143,7 +149,7 @@ export const ChatInput: FC<ChatInputProps> = ({
                 (currentQuestion?.options?.length ?? 0) > 0
           }
         >
-          Send
+          <Send size={20} className="text-white" />
         </button>
       )}
     </div>

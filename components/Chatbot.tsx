@@ -646,7 +646,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               className={`flex gap-2 ${msg?.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <button
-                className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center"
+                className={`h-10 w-10 ${msg.type === 'user' ? 'bg-[#1E3A8A]' : 'bg-[#0D9488]'} text-white rounded-full flex items-center justify-center`}
                 onClick={() => {
                   if (isThisPlaying) {
                     audioRef?.current?.pause();
@@ -705,7 +705,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         })}
 
         {/* Show "analyzing" message when completed but before prediction */}
-        {chatCompleted && (
+        {/* {chatCompleted && !showPrediction && (
           <div className="flex justify-start">
             <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none">
               <p className="leading-relaxed">
@@ -725,7 +725,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Gemini continuation thread and composer */}
         {chatCompleted && (
@@ -737,22 +737,50 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
                 </div>
               </div>
             )}
-            {geminiThread.map((m) => (
-              <div
-                key={m.id}
-                className={`flex gap-2 ${m.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+            {geminiThread.map((m) => {
+              const isThisPlaying = playingId === m?.id;
+              return (
                 <div
-                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                    m.type === 'user'
-                      ? 'bg-[#1E3A8A] text-white rounded-br-none'
-                      : 'bg-[#0D9488] text-white rounded-bl-none'
-                  }`}
+                  key={m.id}
+                  className={`flex gap-2 ${m.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="leading-relaxed">{m.content}</p>
+                  <button
+                    className={`h-10 w-10 ${m.type === 'user' ? 'bg-[#1E3A8A]' : 'bg-[#0D9488]'} text-white rounded-full flex items-center justify-center`}
+                    onClick={() => {
+                      if (isThisPlaying) {
+                        audioRef?.current?.pause();
+                        setPlayingId(null);
+                      } else {
+                        setPlayingId(m?.id);
+
+                        let textToSpeak = '';
+
+                        textToSpeak = m?.content;
+
+                        handleTextToAudio(textToSpeak, () =>
+                          setPlayingId(null)
+                        );
+                      }
+                    }}
+                  >
+                    {isThisPlaying ? (
+                      <Volume2 className="text-black" />
+                    ) : (
+                      <Volume1 />
+                    )}
+                  </button>
+                  <div
+                    className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+                      m.type === 'user'
+                        ? 'bg-[#1E3A8A] text-white rounded-br-none'
+                        : 'bg-[#0D9488] text-white rounded-bl-none'
+                    }`}
+                  >
+                    <p className="leading-relaxed">{m.content}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div className="flex items-center gap-2 pt-2">
               {/* <input
                 type="text"
