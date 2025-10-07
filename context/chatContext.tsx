@@ -65,6 +65,7 @@ export const ChatProvider = ({
     null
   );
   const [showPrediction, setShowPrediction] = useState(false);
+  const [start, setStart] = useState(false);
 
   useEffect(() => {
     const initChat = async () => {
@@ -88,7 +89,7 @@ export const ChatProvider = ({
       }
     };
     initChat();
-  }, []);
+  }, [start]);
 
   // NEW: Auto-show prediction when chat completes
   // useEffect(() => {
@@ -256,6 +257,7 @@ export const ChatProvider = ({
         showPrediction,
         setShowPrediction,
         isProcessingVoice,
+        setStart,
       }}
     >
       {children}
