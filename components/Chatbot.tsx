@@ -57,10 +57,13 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   }, [messages]);
 
   // Gemini API helper
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+  const GEMINI_API_KEY = 'AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM' || '';
   // Add this near the top of your component
-  console.log('API Key loaded:', import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No');
-  
+  console.log(
+    'API Key loaded:',
+    import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No'
+  );
+
   const sendToGemini = async (
     text: string,
     systemPrompt: string,
@@ -68,17 +71,19 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   ): Promise<string> => {
     try {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-      
+
       const payload = {
-        contents: [{
-          parts: [{ text }]
-        }],
+        contents: [
+          {
+            parts: [{ text }],
+          },
+        ],
         systemInstruction: {
-          parts: [{ text: systemPrompt }]
+          parts: [{ text: systemPrompt }],
         },
         ...(useSearch && {
-          tools: [{ google_search: {} }]
-        })
+          tools: [{ google_search: {} }],
+        }),
       };
 
       const response = await fetch(apiUrl, {
@@ -91,11 +96,16 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to fetch from Gemini API');
+        throw new Error(
+          errorData.error?.message || 'Failed to fetch from Gemini API'
+        );
       }
 
       const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from model';
+      return (
+        data.candidates?.[0]?.content?.parts?.[0]?.text ||
+        'No response from model'
+      );
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw error;
@@ -117,11 +127,15 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
         try {
           return await sendToGemini(text, systemPrompt, false);
         } catch (err2) {
-          setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+          setGeminiError(
+            'Unable to fetch suggestions. Please check connectivity or API key.'
+          );
           throw err2;
         }
       } else {
-        setGeminiError('Unable to fetch suggestions. Please check connectivity or API key.');
+        setGeminiError(
+          'Unable to fetch suggestions. Please check connectivity or API key.'
+        );
         throw err;
       }
     }
@@ -151,11 +165,18 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       (async () => {
         try {
           setIsGeminiThinking(true);
-          const reply = await requestGemini(userQuery, systemPrompt, true, true);
+          const reply = await requestGemini(
+            userQuery,
+            systemPrompt,
+            true,
+            true
+          );
           const botMsg =
             reply ||
             "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
-          setGeminiThread([{ id: `bot-${Date.now()}`, type: 'bot', content: botMsg }]);
+          setGeminiThread([
+            { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
+          ]);
           handleTextToAudio(botMsg);
         } catch (e) {
           setGeminiThread((prev) => [
@@ -163,7 +184,8 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
             {
               id: `bot-${Date.now()}`,
               type: 'bot',
-              content: "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
+              content:
+                "Sorry, I couldn't fetch suggestions right now. Please try again shortly.",
             },
           ]);
         } finally {
@@ -176,7 +198,11 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
   const sendFreeChatToGemini = async () => {
     const text = freeChatInput.trim();
     if (!text || isGeminiThinking) return;
-    const newUser = { id: `user-${Date.now()}`, type: 'user' as const, content: text };
+    const newUser = {
+      id: `user-${Date.now()}`,
+      type: 'user' as const,
+      content: text,
+    };
     setGeminiThread((prev) => [...prev, newUser]);
     setFreeChatInput('');
     setIsGeminiThinking(true);
@@ -268,7 +294,6 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
     }
   };
 
-
   // Define this function above your return statement (inside your component)
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -319,7 +344,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
           const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
             c?.charCodeAt(0)
           )?.buffer;
-          
+
           await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
@@ -380,7 +405,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
           const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
             c?.charCodeAt(0)
           )?.buffer;
-          
+
           await playAudio(audioBuffer, () => {
             setIsPlaying(false);
             setPlayingId(null);
