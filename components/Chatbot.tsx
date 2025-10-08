@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
 import { CloudCog, Volume1, Volume2 } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
-import { textToAudio, uploadAudioFile } from '../api/hazelChatApi';
+import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
@@ -70,8 +70,15 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 }, [messages]);
 
 
-  // Gemini API helper
-  const GEMINI_API_KEY = 'AIzaSyANxHRpEwxCnksZg6nBP47oxshkzqa__aM' || '';
+  useEffect(() => {
+  if (messages && messages.length >= 10) {
+    setShowPopup(true);
+  } else {
+    setShowPopup(false);
+  }
+}, [messages]);
+
+
   // Add this near the top of your component
   console.log(
     'API Key loaded:',
@@ -80,46 +87,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
   const sendToGemini = async (
     text: string,
-    systemPrompt: string,
     useSearch = false
-  ): Promise<string> => {
+  ): Promise<any> => {
     try {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
-      const payload = {
-        contents: [
-          {
-            parts: [{ text }],
-          },
-        ],
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        ...(useSearch && {
-          tools: [{ google_search: {} }],
-        }),
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error?.message || 'Failed to fetch from Gemini API'
-        );
-      }
-
-      const data = await response.json();
-      return (
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        'No response from model'
-      );
+      const response = await geminiChat(text, useSearch);
+      return response;
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw error;
@@ -135,11 +107,11 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     setLastGeminiRequest({ text, systemPrompt, useSearch });
     setGeminiError(null);
     try {
-      return await sendToGemini(text, systemPrompt, useSearch);
+      return await sendToGemini(text, useSearch);
     } catch (err) {
       if (useSearch && retryOnSearchFail) {
         try {
-          return await sendToGemini(text, systemPrompt, false);
+          return await sendToGemini(text, false);
         } catch (err2) {
           setGeminiError(
             'Unable to fetch suggestions. Please check connectivity or API key.'
@@ -330,15 +302,15 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
 
     const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
 
-Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+      // Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
 
-You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+      // You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
 
-Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+      // Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
 
-Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+      // Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
 
-The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
+      // The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
 
     // --- Call Gemini AI ---
     const response = await sendToGemini(userMessageContent, systemPrompt);
@@ -806,13 +778,6 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
         {/* Gemini continuation thread and composer */}
         {chatCompleted && (
           <div className="mt-3 space-y-3">
-            {isGeminiThinking && (
-              <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none opacity-90">
-                  <p className="italic">Hazel is preparing next steps...</p>
-                </div>
-              </div>
-            )}
             {geminiThread.map((m) => {
               const isThisPlaying = playingId === m?.id;
               return (
@@ -857,6 +822,32 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
                 </div>
               );
             })}
+            {isGeminiThinking && (
+              <div className="flex gap-2 justify-start items-center">
+                <div className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    className="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+                    />
+                  </svg>
+                </div>
+                <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none opacity-90">
+                  <p className="italic">
+                    Hazel is preparing next steps{' '}
+                    <span className="animate-pulse">...</span>
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2 pt-2">
               {/* <input
                 type="text"
