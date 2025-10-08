@@ -61,11 +61,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               }
             }
           }}
-          disabled={
-            chatCompleted
-              ? isGeminiThinking
-              : !currentQuestion || (currentQuestion?.options?.length ?? 0) > 0
-          }
+          disabled={chatCompleted ? isGeminiThinking : !currentQuestion}
         />
 
         {/* Wave animation container */}
@@ -142,11 +138,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             }
           }}
           disabled={
-            chatCompleted
-              ? isGeminiThinking
-              : !input.trim() ||
-                !currentQuestion ||
-                (currentQuestion?.options?.length ?? 0) > 0
+            chatCompleted ? isGeminiThinking : !input.trim() || !currentQuestion
           }
         >
           <Send size={20} className="text-white" />
