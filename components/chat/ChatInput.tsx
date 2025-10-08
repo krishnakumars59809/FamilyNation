@@ -54,10 +54,11 @@ export const ChatInput: FC<ChatInputProps> = ({
           onKeyDown={async (e) => {
             if (e.key === 'Enter' && input.trim()) {
               const userMessage = input;
-              sendAnswer(chatCompleted ? userMessage : input);
               setInput('');
               if (chatCompleted) {
                 await handleGeminiResponse(userMessage);
+              } else {
+                sendAnswer(input);
               }
             }
           }}

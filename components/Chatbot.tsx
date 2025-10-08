@@ -399,21 +399,21 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       ]);
 
       // Speak the response
-      try {
-        const audioResponse = await textToAudio(response);
-        if (audioResponse?.audio) {
-          const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
-            c?.charCodeAt(0)
-          )?.buffer;
+      // try {
+      //   const audioResponse = await textToAudio(response);
+      //   if (audioResponse?.audio) {
+      //     const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
+      //       c?.charCodeAt(0)
+      //     )?.buffer;
 
-          await playAudio(audioBuffer, () => {
-            setIsPlaying(false);
-            setPlayingId(null);
-          });
-        }
-      } catch (audioError) {
-        console.error('Error playing audio:', audioError);
-      }
+      //     await playAudio(audioBuffer, () => {
+      //       setIsPlaying(false);
+      //       setPlayingId(null);
+      //     });
+      //   }
+      // } catch (audioError) {
+      //   console.error('Error playing audio:', audioError);
+      // }
     } catch (error) {
       console.error('Error sending message to Gemini:', error);
       setGeminiError('Failed to get response from AI. Please try again.');
@@ -791,13 +791,6 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
         {/* Gemini continuation thread and composer */}
         {chatCompleted && (
           <div className="mt-3 space-y-3">
-            {isGeminiThinking && (
-              <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none opacity-90">
-                  <p className="italic">Hazel is preparing next steps...</p>
-                </div>
-              </div>
-            )}
             {geminiThread.map((m) => {
               const isThisPlaying = playingId === m?.id;
               return (
@@ -842,6 +835,32 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
                 </div>
               );
             })}
+            {isGeminiThinking && (
+              <div className="flex gap-2 justify-start items-center">
+                <div className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    className="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+                    />
+                  </svg>
+                </div>
+                <div className="px-4 py-3 rounded-2xl max-w-[80%] bg-[#0D9488] text-white rounded-bl-none opacity-90">
+                  <p className="italic">
+                    Hazel is preparing next steps{' '}
+                    <span className="animate-pulse">...</span>
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2 pt-2">
               {/* <input
                 type="text"
