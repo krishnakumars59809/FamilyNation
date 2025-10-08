@@ -52,9 +52,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
   );
 
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, geminiThread, isGeminiThinking]);
 
   // Add this near the top of your component
   console.log(
@@ -421,11 +422,6 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       setCanInteract(true);
     }
   };
-
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   // TODO
   // useEffect(() => {
