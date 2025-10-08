@@ -70,14 +70,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 }, [messages]);
 
 
-  useEffect(() => {
-  if (messages && messages.length >= 10) {
-    setShowPopup(true);
-  } else {
-    setShowPopup(false);
-  }
-}, [messages]);
-
 
   // Add this near the top of your component
   console.log(
@@ -86,17 +78,37 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   );
 
   const sendToGemini = async (
-    text: string,
-    useSearch = false
-  ): Promise<any> => {
-    try {
-      const response = await geminiChat(text, useSearch);
-      return response;
-    } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      throw error;
-    }
-  };
+  text: string,
+  systemPrompt: string,
+  conversationContext: { type: 'user' | 'bot'; content: string }[] = [],
+  useSearch = false
+): Promise<any> => {
+  try {
+    // 🧩 Build conversation history string
+    const conversationHistory = conversationContext
+      .map((msg) => `${msg.type === 'user' ? 'User' : 'Hazel'}: ${msg.content}`)
+      .join('\n');
+
+    // 🧠 Combine system prompt + past conversation + new message
+    const fullPrompt = `
+${systemPrompt}
+
+Conversation so far:
+${conversationHistory}
+
+User's new message:
+${text}
+`;
+
+    // 🔗 Send to Gemini
+    const response = await geminiChat(fullPrompt, useSearch);
+    return response;
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    throw error;
+  }
+};
+
 
   const requestGemini = async (
     text: string,
@@ -281,20 +293,64 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
   };
 
   // Define this function above your return statement (inside your component)
-  const handleSendMessage = async () => {
+ const handleSendMessage = async () => {
   if (!input.trim()) return;
 
-  const userMessageContent = input;
-  setInput('');
-
-  // --- Create user message object ---
   const userMessage = {
     id: `user-${Date.now()}`,
     type: 'user' as const,
-    content: userMessageContent,
+    content: input,
   };
 
-  // Save user message in conversationContext
+  setInput('');
+  setGeminiThread((prev) => [...prev, userMessage]);
+  setConversationContext((prev) => [...prev, userMessage]);
+
+  try {
+    setIsGeminiThinking(true);
+    
+    const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+
+      // Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
+
+      // You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive. Your conversation is the first step in their journey to getting help.
+
+      // Your response must be a conversational response, strictly under 50 words. Your language should be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward by asking insightful, clarifying questions.
+
+      // Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
+
+      // The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
+;
+    // 🧩 Include updated context (so Gemini knows the full conversation)
+    const updatedContext = [...conversationContext, userMessage];
+
+    const response = await sendToGemini(input, systemPrompt, updatedContext);
+
+    const botMessage = {
+      id: `bot-${Date.now() + 1}`,
+      type: 'bot' as const,
+      content: response,
+    };
+
+    setGeminiThread((prev) => [...prev, botMessage]);
+    setConversationContext((prev) => [...prev, botMessage]);
+
+  } catch (error) {
+    console.error('Error sending message:', error);
+  } finally {
+    setIsGeminiThinking(false);
+  }
+};
+
+
+const handleGeminiResponse = async (message: string) => {
+  const userMessage = {
+    id: `user-${Date.now()}`,
+    type: 'user' as const,
+    content: message,
+  };
+
+  setGeminiThread((prev) => [...prev, userMessage]);
   setConversationContext((prev) => [...prev, userMessage]);
 
   try {
@@ -311,64 +367,10 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       // Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
 
       // The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
+;
+    // 🧩 Include updated context
+    const updatedContext = [...conversationContext, userMessage];
 
-    // --- Call Gemini AI ---
-    const response = await sendToGemini(userMessageContent, systemPrompt);
-
-    // --- Create bot message object ---
-    const botMessage = {
-      id: `bot-${Date.now() + 1}`,
-      type: 'bot' as const,
-      content: response,
-    };
-
-    // Save bot message in conversationContext
-    setConversationContext((prev) => [...prev, botMessage]);
-
-    // --- Speak the bot response ---
-    try {
-      const audioResponse = await textToAudio(response);
-      if (audioResponse?.audio) {
-        const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
-          c.charCodeAt(0)
-        ).buffer;
-
-        await playAudio(audioBuffer, () => {
-          setIsPlaying(false);
-          setPlayingId(null);
-        });
-      }
-    } catch (audioError) {
-      console.error('Error playing audio:', audioError);
-    }
-  } catch (error) {
-    console.error('Error sending message to Gemini:', error);
-    setGeminiError('Failed to get response from AI. Please try again.');
-  } finally {
-    setIsGeminiThinking(false);
-  }
-};
-
-
-  const handleGeminiResponse = async (message: string) => {
-  const userMessage = {
-    id: `user-${Date.now()}`,
-    type: 'user' as const,
-    content: message,
-  };
-
-  // Update UI thread
-  setGeminiThread((prev) => [...prev, userMessage]);
-
-  // Build new context including the latest message
-  const updatedContext = [...conversationContext, userMessage];
-
-  try {
-    setIsGeminiThinking(true);
-
-    const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation...`;
-
-    // Send the full updated context to Gemini
     const response = await sendToGemini(message, systemPrompt, updatedContext);
 
     const botMessage = {
@@ -377,28 +379,9 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       content: response,
     };
 
-    // Save both user and bot messages in context
-    setConversationContext([...updatedContext, botMessage]);
-
-    // Add bot message to UI thread
     setGeminiThread((prev) => [...prev, botMessage]);
+    setConversationContext((prev) => [...prev, botMessage]);
 
-    // Text-to-Speech
-    try {
-      const audioResponse = await textToAudio(response);
-      if (audioResponse?.audio) {
-        const audioBuffer = Uint8Array.from(atob(audioResponse.audio), (c) =>
-          c.charCodeAt(0)
-        ).buffer;
-
-        await playAudio(audioBuffer, () => {
-          setIsPlaying(false);
-          setPlayingId(null);
-        });
-      }
-    } catch (audioError) {
-      console.error('Error playing audio:', audioError);
-    }
   } catch (error) {
     console.error('Error sending message to Gemini:', error);
     setGeminiError('Failed to get response from AI. Please try again.');
@@ -458,6 +441,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
     }
   };
   console.log(conversationContext)
+  console.log(geminiThread)
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
