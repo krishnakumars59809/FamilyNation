@@ -35,3 +35,13 @@ export const textToAudio = (text: string): Promise<ReplyResponse> => {
     body: JSON.stringify({ text }),
   });
 };
+
+export const geminiChat = (
+  text: string,
+  useSearch?: boolean
+): Promise<ReplyResponse> => {
+  return apiClient(`/chat/chat`, {
+    method: 'POST',
+    body: JSON.stringify({ messages: text, useSearch }),
+  });
+};
