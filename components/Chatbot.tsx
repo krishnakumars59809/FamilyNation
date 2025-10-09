@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { CloudCog, Link, Volume1, Volume2, X } from 'lucide-react';
+import { CloudCog, Info, Link, Volume1, Volume2, X } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
@@ -915,7 +915,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
           ></div>
 
           {/* Modal content */}
-          <div className="bg-gray-200 p-6 rounded-2xl shadow-lg w-[90%] max-w-md text-center relative">
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-md text-center relative">
             {/* Close button */}
             <button
               onClick={() => setShowPopup(false)}
@@ -924,7 +924,10 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
               <X size={20} />
             </button>
 
-            <h2 className="mb-4 text-xl font-bold mb-4 text-blue-800">
+            <div className="m-2 flex justify-center items-center">
+              <Info size={50} className="text-blue-700" />
+            </div>
+            <h2 className="mb-4 text-xl font-bold mb-4 text-black">
               Continue Chat..?
             </h2>
             <p className="mb-4 text-gray-600 mb-6">
@@ -932,31 +935,30 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
               connect with a professional?
             </p>
 
-            <div className="mb-4 flex flex-col md:flex-row justify-between gap-2">
-              <button
-                onClick={() => setShowPopup(false)}
-                className="w-full bg-gradient-to-r from-emerald-500 from-10% to-emerald-900 to-90% text-white px-4 py-2 rounded-xl hover:bg-blue-900"
-              >
-                Continue Chat
-              </button>
-              <button
-                className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 from-10% to-blue-900 to-90% rounded-lg hover:bg-blue-900 text-white text-sm"
-                onClick={handleShowProfessionals}
-              >
-                Recommended Professionals
-              </button>
-            </div>
-            <div className="border-t border-gray-200 my-3"></div>
-
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="mb-2 flex flex-wrap justify-center gap-2">
               <div>
                 <p
-                  className="text-blue-500 hover:text-blue-700 text-md font-bold mb-2 underline cursor-pointer"
+                  className="text-blue-600 hover:text-blue-700 text-md font-bold mb-2 underline cursor-pointer"
                   onClick={handleShowPrediction}
                 >
                   Prediction Chart
                 </p>
               </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between gap-2">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="w-full p-2 bg-gradient-to-r from-emerald-500 from-10% to-emerald-900 to-90% text-white text-sm md:text-md rounded-lg hover:bg-emerald-900"
+              >
+                Continue Chat
+              </button>
+              <button
+                className="w-full p-2 bg-gradient-to-r from-blue-500 from-10% to-blue-900 to-90% rounded-lg hover:bg-blue-900 text-white text-sm md:text-md"
+                onClick={handleShowProfessionals}
+              >
+                Recommended Professionals
+              </button>
             </div>
           </div>
         </div>
@@ -1030,7 +1032,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
             </div>
 
             {/* Action Button */}
-            <div className="p-4 flex gap-3 bg-white border-t border-gray-100">
+            {/* <div className="p-4 flex gap-3 bg-white border-t border-gray-100">
               <Link to="/recommended" className="flex-1">
                 <button
                   className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:opacity-90 text-white px-4 py-3 rounded-xl font-medium transition-all"
@@ -1039,7 +1041,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
                   Show Recommended Professionals
                 </button>
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       )}
