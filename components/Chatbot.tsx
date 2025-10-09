@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { CloudCog, Volume1, Volume2 } from 'lucide-react';
+import { CloudCog, Link, Volume1, Volume2, X } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
+import { PredictionChart } from './PredictionChart';
+import ActionPlan from './ActionPlan';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -13,8 +15,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     loading,
     chatCompleted,
     predictionData,
-    showPrediction,
-    setShowPrediction,
+    // showPrediction,
+    // setShowPrediction,
     setStart,
   } = useChat();
 
@@ -32,7 +34,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     'NEUTRAL'
   );
   const [canInteract, setCanInteract] = useState(true);
-
+  const [showPrediction, setShowPrediction] = useState(false);
+  const [showProfessionals, setShowProfessionals] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [conversationContext, setConversationContext] = useState<
@@ -56,13 +59,21 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
   );
 
+  const handleShowPrediction = () => {
+    setShowPrediction(true);
+  };
+
+  const handleShowProfessionals = () => {
+    setShowProfessionals(true);
+  };
+
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, geminiThread, isGeminiThinking]);
 
   useEffect(() => {
-    if (messages && messages.length >= 10) {
+    if (messages && messages.length >= 13) {
       setShowPopup(true);
     } else {
       setShowPopup(false);
@@ -174,7 +185,7 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
           setGeminiThread([
             { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
           ]);
-          handleTextToAudio(botMsg);
+          // handleTextToAudio(botMsg);
         } catch (e) {
           setGeminiThread((prev) => [
             ...prev,
@@ -904,23 +915,151 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
           ></div>
 
           {/* Modal content */}
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full z-50">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
-              Important!
-            </h3>
-            <p className="text-gray-700 text-sm mb-4 text-center">
-              You've reached 10 messages! Hazel has something special to share.
-            </p>
+          <div className="bg-gray-200 p-6 rounded-2xl shadow-lg w-[90%] max-w-md text-center relative">
+            {/* Close button */}
             <button
-              className="w-full bg-[#0D9488] hover:bg-[#0b7a6f] text-white px-4 py-3 rounded-xl font-medium"
               onClick={() => setShowPopup(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
-              Close
+              <X size={20} />
             </button>
+
+            <h2 className="mb-4 text-xl font-bold mb-4 text-blue-800">
+              Continue Chat..?
+            </h2>
+            <p className="mb-4 text-gray-600 mb-6">
+              You’ve had a long chat! Would you like to continue chatting or
+              connect with a professional?
+            </p>
+
+            <div className="mb-4 flex flex-col md:flex-row justify-between gap-2">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="w-full bg-gradient-to-r from-emerald-500 from-10% to-emerald-900 to-90% text-white px-4 py-2 rounded-xl hover:bg-blue-900"
+              >
+                Continue Chat
+              </button>
+              <button
+                className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 from-10% to-blue-900 to-90% rounded-lg hover:bg-blue-900 text-white text-sm"
+                onClick={handleShowProfessionals}
+              >
+                Recommended Professionals
+              </button>
+            </div>
+            <div className="border-t border-gray-200 my-3"></div>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              <div>
+                <p
+                  className="text-blue-500 hover:text-blue-700 text-md font-bold mb-2 underline cursor-pointer"
+                  onClick={handleShowPrediction}
+                >
+                  Prediction Chart
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
-      `
+      {/* showprediction */}
+      {showPrediction && predictionData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[95%] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
+                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-[#F87171] rounded-full"></div>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
+                </div>
+                <div>
+                  <span className="font-bold">Hazel</span>
+                  <p className="text-xs opacity-90">
+                    Family Stability Analysis
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPrediction(false);
+                  // setShowPopup(false);
+                }}
+                className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
+              >
+                &times;
+              </button>
+            </div>
+            {/* Prediction Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Family Stability Forecast
+                </h3>
+
+                {/* Chart Component */}
+                <PredictionChart data={predictionData} />
+
+                {/* Prediction Message */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-blue-800 text-sm leading-relaxed">
+                    {predictionData.message}
+                  </p>
+                </div>
+
+                {/* Risk Level Indicator */}
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">
+                    Risk Level:
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      predictionData.riskLevel === 'high'
+                        ? 'bg-red-100 text-red-800'
+                        : predictionData.riskLevel === 'medium'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {predictionData.riskLevel.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="p-4 flex gap-3 bg-white border-t border-gray-100">
+              <Link to="/recommended" className="flex-1">
+                <button
+                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:opacity-90 text-white px-4 py-3 rounded-xl font-medium transition-all"
+                  onClick={onClose}
+                >
+                  Show Recommended Professionals
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {showProfessionals && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[95%] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowProfessionals(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
+            >
+              <X size={22} />
+            </button>
+            <div className="mb-4">
+              <ActionPlan />
+            </div>
+          </div>
+        </div>
+      )}
       <ChatInput
         input={input}
         setInput={setInput}
