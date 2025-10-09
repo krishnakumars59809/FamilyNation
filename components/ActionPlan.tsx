@@ -59,7 +59,7 @@ const ActionPlan = () => {
 
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Plan for Tonight */}
-          <Card className="p-6 shadow-card">
+          {/* <Card className="p-6 shadow-card">
             <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
               <CheckCircle className="w-5 h-5 mr-2 text-success" />
               Plan for Tonight
@@ -74,72 +74,76 @@ const ActionPlan = () => {
                 </div>
               ))}
             </div>
-          </Card>
+          </Card> */}
 
           {/* Recommended Professionals */}
-          <Card className="p-6 shadow-card">
-            <h2 className="text-xl font-bold text-foreground mb-6 flex items-center">
-              <Phone className="w-5 h-5 mr-2 text-primary" />
-              Recommended Professionals
-            </h2>
-            <div className="space-y-4">
-              {professionals.map((professional, index) => (
-                <div
-                  key={index}
-                  className="border border-border rounded-lg p-4 hover:shadow-soft transition-all"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg text-foreground">
-                        {professional.name}
-                      </h3>
-                      <p className="text-primary font-medium">
-                        {professional.title}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {professional.specialty}
-                      </p>
-                    </div>
-                    <span className={Badge({ variant: 'secondary' })}>
-                      <Star className="w-3 h-3 mr-1 fill-current" />
-                      {professional.rating}
-                    </span>
-                  </div>
+          <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+            <Card className="p-6 flex-1 shadow-card">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <Phone className="w-5 h-5 mr-2 text-emerald-600" />
+                Recommended Professionals
+              </h2>
 
-                  <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-                    <div className="flex items-center text-muted-foreground">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {professional.distance}
+              {/* Scrollable List */}
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                {professionals.map((professional, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-all"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">
+                          {professional.name}
+                        </h3>
+                        <p className="text-emerald-700 font-medium">
+                          {professional.title}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          {professional.specialty}
+                        </p>
+                      </div>
+                      <span className={Badge({ variant: 'secondary' })}>
+                        <Star className="w-3 h-3 mr-1 fill-current" />
+                        {professional.rating}
+                      </span>
                     </div>
-                    <div className="flex items-center text-muted-foreground">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {professional.availability}
+
+                    <div className="grid grid-cols-2 gap-4 mb-3 text-sm text-gray-500">
+                      {/* <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {professional.distance}
+                      </div> */}
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {professional.availability}
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-4">
+                      <strong>Why recommended:</strong> {professional.reason}
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 items-center text-xs lg:text-sm">
+                      <Button variant="success" size="sm">
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call {professional.phone}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-gray-200 hover:bg-gray-300 border"
+                      >
+                        Request Warm Handoff
+                      </Button>
                     </div>
                   </div>
-
-                  <p className="text-sm text-muted-foreground mb-4">
-                    <strong>Why recommended:</strong> {professional.reason}
-                  </p>
-
-                  <div className="flex-none md:flex gap-3 items-center text-xs lg:text-md">
-                    <Button variant="success" size="sm">
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call {professional.phone}
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="mt-2 md:mt-0 bg-gray-200 border hover:border-black"
-                    >
-                      Request Warm Handoff
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
+          </div>
 
           {/* Community Support */}
-          <Card className="p-6 shadow-card">
+          {/* <Card className="p-6 shadow-card">
             <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
               <Users className="w-5 h-5 mr-2 text-accent" />
               Community Support
@@ -157,10 +161,10 @@ const ActionPlan = () => {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-          </Card>
+          </Card> */}
 
           {/* Next Steps */}
-          <Card className="p-6 shadow-card text-center">
+          {/* <Card className="p-6 shadow-card text-center">
             <h2 className="text-xl font-bold text-foreground mb-4">
               Want More Ongoing Support?
             </h2>
@@ -172,7 +176,7 @@ const ActionPlan = () => {
               Create Free Account
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>
