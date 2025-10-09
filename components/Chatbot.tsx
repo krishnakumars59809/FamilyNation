@@ -57,9 +57,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
   );
 
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, geminiThread, isGeminiThinking]);
 
   useEffect(() => {
   if (messages && messages.length >= 10) {
@@ -440,12 +441,7 @@ const handleGeminiResponse = async (message: string) => {
       setCanInteract(true);
     }
   };
-  console.log(conversationContext)
-  console.log(geminiThread)
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+
 
   // TODO
   // useEffect(() => {
