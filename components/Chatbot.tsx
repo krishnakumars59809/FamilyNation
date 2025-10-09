@@ -36,9 +36,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [conversationContext, setConversationContext] = useState<
-  { id: string; type: 'user' | 'bot'; content: string }[]
->([]);
-
+    { id: string; type: 'user' | 'bot'; content: string }[]
+  >([]);
 
   // Gemini continuation state
   const [geminiThread, setGeminiThread] = useState<
@@ -63,14 +62,12 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   }, [messages, geminiThread, isGeminiThinking]);
 
   useEffect(() => {
-  if (messages && messages.length >= 10) {
-    setShowPopup(true);
-  } else {
-    setShowPopup(false);
-  }
-}, [messages]);
-
-
+    if (messages && messages.length >= 10) {
+      setShowPopup(true);
+    } else {
+      setShowPopup(false);
+    }
+  }, [messages]);
 
   // Add this near the top of your component
   console.log(
@@ -79,19 +76,21 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   );
 
   const sendToGemini = async (
-  text: string,
-  systemPrompt: string,
-  conversationContext: { type: 'user' | 'bot'; content: string }[] = [],
-  useSearch = false
-): Promise<any> => {
-  try {
-    // 🧩 Build conversation history string
-    const conversationHistory = conversationContext
-      .map((msg) => `${msg.type === 'user' ? 'User' : 'Hazel'}: ${msg.content}`)
-      .join('\n');
+    text: string,
+    systemPrompt: string,
+    conversationContext: { type: 'user' | 'bot'; content: string }[] = [],
+    useSearch = false
+  ): Promise<any> => {
+    try {
+      // 🧩 Build conversation history string
+      const conversationHistory = conversationContext
+        .map(
+          (msg) => `${msg.type === 'user' ? 'User' : 'Hazel'}: ${msg.content}`
+        )
+        .join('\n');
 
-    // 🧠 Combine system prompt + past conversation + new message
-    const fullPrompt = `
+      // 🧠 Combine system prompt + past conversation + new message
+      const fullPrompt = `
 ${systemPrompt}
 
 Conversation so far:
@@ -101,15 +100,14 @@ User's new message:
 ${text}
 `;
 
-    // 🔗 Send to Gemini
-    const response = await geminiChat(fullPrompt, useSearch);
-    return response;
-  } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    throw error;
-  }
-};
-
+      // 🔗 Send to Gemini
+      const response = await geminiChat(fullPrompt, useSearch);
+      return response;
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      throw error;
+    }
+  };
 
   const requestGemini = async (
     text: string,
@@ -159,7 +157,7 @@ Your response must be a conversational response, strictly under 50 words. Your l
 Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
 
 The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
-      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 20 words and strictly within 2-3 senetences only`;
+      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 50 words and strictly within 2-3 senetences only`;
 
       (async () => {
         try {
@@ -294,23 +292,23 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
   };
 
   // Define this function above your return statement (inside your component)
- const handleSendMessage = async () => {
-  if (!input.trim()) return;
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
 
-  const userMessage = {
-    id: `user-${Date.now()}`,
-    type: 'user' as const,
-    content: input,
-  };
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user' as const,
+      content: input,
+    };
 
-  setInput('');
-  setGeminiThread((prev) => [...prev, userMessage]);
-  setConversationContext((prev) => [...prev, userMessage]);
+    setInput('');
+    setGeminiThread((prev) => [...prev, userMessage]);
+    setConversationContext((prev) => [...prev, userMessage]);
 
-  try {
-    setIsGeminiThinking(true);
-    
-    const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+    try {
+      setIsGeminiThinking(true);
+
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
 
       // Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
 
@@ -321,43 +319,40 @@ The tone must be consistently empathetic, calm, patient, and professional, like 
       // Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
 
       // The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
-;
-    // 🧩 Include updated context (so Gemini knows the full conversation)
-    const updatedContext = [...conversationContext, userMessage];
+      // 🧩 Include updated context (so Gemini knows the full conversation)
+      const updatedContext = [...conversationContext, userMessage];
 
-    const response = await sendToGemini(input, systemPrompt, updatedContext);
+      const response = await sendToGemini(input, systemPrompt, updatedContext);
 
-    const botMessage = {
-      id: `bot-${Date.now() + 1}`,
-      type: 'bot' as const,
-      content: response,
-    };
+      const botMessage = {
+        id: `bot-${Date.now() + 1}`,
+        type: 'bot' as const,
+        content: response,
+      };
 
-    setGeminiThread((prev) => [...prev, botMessage]);
-    setConversationContext((prev) => [...prev, botMessage]);
-
-  } catch (error) {
-    console.error('Error sending message:', error);
-  } finally {
-    setIsGeminiThinking(false);
-  }
-};
-
-
-const handleGeminiResponse = async (message: string) => {
-  const userMessage = {
-    id: `user-${Date.now()}`,
-    type: 'user' as const,
-    content: message,
+      setGeminiThread((prev) => [...prev, botMessage]);
+      setConversationContext((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsGeminiThinking(false);
+    }
   };
 
-  setGeminiThread((prev) => [...prev, userMessage]);
-  setConversationContext((prev) => [...prev, userMessage]);
+  const handleGeminiResponse = async (message: string) => {
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user' as const,
+      content: message,
+    };
 
-  try {
-    setIsGeminiThinking(true);
+    setGeminiThread((prev) => [...prev, userMessage]);
+    setConversationContext((prev) => [...prev, userMessage]);
 
-    const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
+    try {
+      setIsGeminiThinking(true);
+
+      const systemPrompt = `You are Hazel, a compassionate and professional AI assistant for FamilyNation. Your persona is that of a warm and insightful therapist or psychiatrist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns. You are an expert at active listening and gently guiding conversations to understand the user's core needs.
 
       // Your primary goal is to understand the user's feelings and the situation they are facing. Engage in a thoughtful, multi-turn conversation to gently explore their concerns. Ask a few open-ended, interactive questions to help them reflect and articulate their needs (e.g., "How has this been affecting you?", "What are your hopes for resolving this?"). Your most critical safety protocol is to recognize the limits of your AI capabilities. You must not provide therapy, diagnosis, or advice. When a query requires professional judgment, your instruction is to gently and clearly guide them toward connecting with one of our human experts, reassuring them that speaking to a person is a positive next step.
 
@@ -368,30 +363,30 @@ const handleGeminiResponse = async (message: string) => {
       // Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered to seek the help they need.
 
       // The tone must be consistently empathetic, calm, patient, and professional, like a trusted therapist. You are here to listen and help the user explore their thoughts, not to solve their problems for them.`;
-;
-    // 🧩 Include updated context
-    const updatedContext = [...conversationContext, userMessage];
+      // 🧩 Include updated context
+      const updatedContext = [...conversationContext, userMessage];
 
-    const response = await sendToGemini(message, systemPrompt, updatedContext);
+      const response = await sendToGemini(
+        message,
+        systemPrompt,
+        updatedContext
+      );
 
-    const botMessage = {
-      id: `bot-${Date.now() + 1}`,
-      type: 'bot' as const,
-      content: response,
-    };
+      const botMessage = {
+        id: `bot-${Date.now() + 1}`,
+        type: 'bot' as const,
+        content: response,
+      };
 
-    setGeminiThread((prev) => [...prev, botMessage]);
-    setConversationContext((prev) => [...prev, botMessage]);
-
-  } catch (error) {
-    console.error('Error sending message to Gemini:', error);
-    setGeminiError('Failed to get response from AI. Please try again.');
-  } finally {
-    setIsGeminiThinking(false);
-  }
-};
-
-
+      setGeminiThread((prev) => [...prev, botMessage]);
+      setConversationContext((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error sending message to Gemini:', error);
+      setGeminiError('Failed to get response from AI. Please try again.');
+    } finally {
+      setIsGeminiThinking(false);
+    }
+  };
 
   const handleUpload = async (blob: Blob) => {
     setIsProcessing(true);
@@ -441,7 +436,6 @@ const handleGeminiResponse = async (message: string) => {
       setCanInteract(true);
     }
   };
-
 
   // TODO
   // useEffect(() => {
@@ -662,7 +656,6 @@ const handleGeminiResponse = async (message: string) => {
           &times;
         </button>
       </div>
-
       {/* Chat body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages?.map((msg) => {
@@ -866,7 +859,6 @@ const handleGeminiResponse = async (message: string) => {
 
         <div ref={messagesEndRef} />
       </div>
-
       {/* Input area */}
       {/* {currentQuestion && !currentQuestion.options && !chatCompleted && (
         <div className="border-t border-gray-200 p-4 bg-white">
@@ -902,33 +894,33 @@ const handleGeminiResponse = async (message: string) => {
           </p>
         </div>
       )} */}
-      {/* Popup Modal */}
-        `{showPopup && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            {/* Background overlay */}
-            <div
-              className="absolute inset-0 bg-black bg-opacity-40"
-              onClick={() => setShowPopup(false)}
-            ></div>
+      {/* Popup Modal */}`
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* Background overlay */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-40"
+            onClick={() => setShowPopup(false)}
+          ></div>
 
-            {/* Modal content */}
-            <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full z-50">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
-                Important!
-              </h3>
-              <p className="text-gray-700 text-sm mb-4 text-center">
-                You've reached 10 messages! Hazel has something special to share.
-              </p>
-              <button
-                className="w-full bg-[#0D9488] hover:bg-[#0b7a6f] text-white px-4 py-3 rounded-xl font-medium"
-                onClick={() => setShowPopup(false)}
-              >
-                Close
-              </button>
-            </div>
+          {/* Modal content */}
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full z-50">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
+              Important!
+            </h3>
+            <p className="text-gray-700 text-sm mb-4 text-center">
+              You've reached 10 messages! Hazel has something special to share.
+            </p>
+            <button
+              className="w-full bg-[#0D9488] hover:bg-[#0b7a6f] text-white px-4 py-3 rounded-xl font-medium"
+              onClick={() => setShowPopup(false)}
+            >
+              Close
+            </button>
           </div>
-        )}
-`
+        </div>
+      )}
+      `
       <ChatInput
         input={input}
         setInput={setInput}
