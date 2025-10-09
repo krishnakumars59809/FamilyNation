@@ -85,7 +85,7 @@ const ActionPlan = () => {
               </h2>
 
               {/* Scrollable List */}
-              <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <div className="space-y-4 h-[30vh] md:h-[40vh] max-h-[40vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {professionals.map((professional, index) => (
                   <div
                     key={index}

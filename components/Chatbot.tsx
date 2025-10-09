@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { CloudCog, Volume1, Volume2 } from 'lucide-react';
+import { CloudCog, Info, Link, Volume1, Volume2, X } from 'lucide-react';
 import { ChatInput } from './chat/ChatInput';
 import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
+import { PredictionChart } from './PredictionChart';
+import ActionPlan from './ActionPlan';
 
 export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const {
@@ -13,8 +15,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     loading,
     chatCompleted,
     predictionData,
-    showPrediction,
-    setShowPrediction,
+    // showPrediction,
+    // setShowPrediction,
     setStart,
   } = useChat();
 
@@ -32,10 +34,15 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     'NEUTRAL'
   );
   const [canInteract, setCanInteract] = useState(true);
-
+  const [showPrediction, setShowPrediction] = useState(false);
+  const [showProfessionals, setShowProfessionals] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // Chat context state for maintaining conversation history
+  const [conversationContext, setConversationContext] = useState<
+    { id: string; type: 'user' | 'bot'; content: string }[]
+  >([]);
+
+  // Gemini continuation state
   const [geminiThread, setGeminiThread] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
@@ -52,13 +59,21 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
     `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`
   );
 
+  const handleShowPrediction = () => {
+    setShowPrediction(true);
+  };
+
+  const handleShowProfessionals = () => {
+    setShowProfessionals(true);
+  };
+
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, geminiThread, isGeminiThinking]);
 
   useEffect(() => {
-    if (messages && messages.length >= 20) {
+    if (messages && messages.length >= 13) {
       setShowPopup(true);
     } else {
       setShowPopup(false);
@@ -142,7 +157,7 @@ ${text}
         ?.filter((m) => m.type === 'user')
         ?.map((m) => m.content)
         ?.join(', ');
-        const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
+      const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
 
         // MODIFIED: The goal is now proactive support, not just understanding.
         Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
@@ -154,7 +169,8 @@ ${text}
         - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
         - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
         
-       
+        // REMOVED: The old critical safety protocol that forbade advice.
+        // NEW: Replaced with a more nuanced ethical guideline.
         **Ethical Guideline & Disclaimer:**
         While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
         
@@ -167,7 +183,7 @@ ${text}
         
         The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
 
-      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 100 words and strictly within 4-5 senetences only`;
+      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 100 words and strictly within 2-3 senetences only`;
 
       (async () => {
         try {
@@ -184,7 +200,7 @@ ${text}
           setGeminiThread([
             { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
           ]);
-          handleTextToAudio(botMsg);
+          // handleTextToAudio(botMsg);
         } catch (e) {
           setGeminiThread((prev) => [
             ...prev,
@@ -216,28 +232,30 @@ ${text}
     try {
       const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
 
-// MODIFIED: The goal is now proactive support, not just understanding.
-Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
+      // MODIFIED: The goal is now proactive support, not just understanding.
+      Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
+      
+      // NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
+      **Interaction Style:**
+      - **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
+      - **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
+      - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
+      - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
+      
+      // REMOVED: The old critical safety protocol that forbade advice.
+      // NEW: Replaced with a more nuanced ethical guideline.
+      **Ethical Guideline & Disclaimer:**
+      While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
+      
+      You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
+      
+      // MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
+      Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
+      
+      Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
+      
+      The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
 
-// NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
-**Interaction Style:**
-- **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
-- **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
-- **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
-- **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
-
-
-**Ethical Guideline & Disclaimer:**
-While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
-
-You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
-
-// MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
-Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
-
-Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
-
-The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
       const reply = await requestGemini(text, systemPrompt, false, false);
       const botMsg = reply || "I couldn't process that. Could you rephrase?";
       setGeminiThread((prev) => [
@@ -316,7 +334,7 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
 
   // Define this function above your return statement (inside your component)
   const handleSendMessage = async () => {
-    if (!input.trim() || isGeminiThinking) return;
+    if (!input.trim()) return;
 
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -324,14 +342,12 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
       content: input,
     };
 
-    // Update the UI immediately with user's message
-    const updatedThread = [...geminiThread, userMessage];
-    setGeminiThread(updatedThread);
     setInput('');
+    setGeminiThread((prev) => [...prev, userMessage]);
+    setConversationContext((prev) => [...prev, userMessage]);
 
     try {
       setIsGeminiThinking(true);
-      setGeminiError(null);
 
       const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
 
@@ -345,7 +361,8 @@ Your primary goal is to help the user navigate their feelings and challenges by 
 - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
 - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
 
-/
+// REMOVED: The old critical safety protocol that forbade advice.
+// NEW: Replaced with a more nuanced ethical guideline.
 **Ethical Guideline & Disclaimer:**
 While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
 
@@ -358,11 +375,10 @@ Your audience consists of individuals and families who may be feeling stressed, 
 
 The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
 
-      const response = await sendToGemini(input, systemPrompt, updatedThread);
+      // 🧩 Include updated context (so Gemini knows the full conversation)
+      const updatedContext = [...conversationContext, userMessage];
 
-      if (!response) {
-        throw new Error('Empty response from AI');
-      }
+      const response = await sendToGemini(input, systemPrompt, updatedContext);
 
       const botMessage = {
         id: `bot-${Date.now() + 1}`,
@@ -370,63 +386,62 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
         content: response,
       };
 
-      setGeminiThread(prev => [...prev, botMessage]);
+      setGeminiThread((prev) => [...prev, botMessage]);
+      setConversationContext((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setGeminiError('Failed to get response from AI. Please try again.');
-      // Remove the user's message if there was an error
-      setGeminiThread(prev => prev.filter(msg => msg.id !== userMessage.id));
     } finally {
       setIsGeminiThinking(false);
     }
   };
 
   const handleGeminiResponse = async (message: string) => {
-    if (isGeminiThinking) return;
-    
     const userMessage = {
       id: `user-${Date.now()}`,
       type: 'user' as const,
       content: message,
     };
 
-    // Update the UI immediately with user's message
-    const updatedThread = [...geminiThread, userMessage];
-    setGeminiThread(updatedThread);
+    setGeminiThread((prev) => [...prev, userMessage]);
+    setConversationContext((prev) => [...prev, userMessage]);
 
     try {
       setIsGeminiThinking(true);
-      setGeminiError(null);
 
       const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
 
-      // MODIFIED: The goal is now proactive support, not just understanding.
-      Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
-      
-      // NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
-      **Interaction Style:**
-      - **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
-      - **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
-      - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
-      - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
-      
-      
-      **Ethical Guideline & Disclaimer:**
-      While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
-      
-      You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
-      
-      // MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
-      Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
-      
-      Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
-      
-      The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
-      const response = await sendToGemini(message, systemPrompt, updatedThread);
+// MODIFIED: The goal is now proactive support, not just understanding.
+Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
 
-      if (!response) {
-        throw new Error('Empty response from AI');
-      }
+// NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
+**Interaction Style:**
+- **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
+- **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
+- **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
+- **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
+
+// REMOVED: The old critical safety protocol that forbade advice.
+// NEW: Replaced with a more nuanced ethical guideline.
+**Ethical Guideline & Disclaimer:**
+While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
+
+You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
+
+// MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
+Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
+
+Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
+
+The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
+
+      // 🧩 Include updated context
+      const updatedContext = [...conversationContext, userMessage];
+
+      const response = await sendToGemini(
+        message,
+        systemPrompt,
+        updatedContext
+      );
 
       const botMessage = {
         id: `bot-${Date.now() + 1}`,
@@ -434,12 +449,11 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
         content: response,
       };
 
-      setGeminiThread(prev => [...prev, botMessage]);
+      setGeminiThread((prev) => [...prev, botMessage]);
+      setConversationContext((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Error sending message to Gemini:', error);
       setGeminiError('Failed to get response from AI. Please try again.');
-      // Remove the user's message if there was an error
-      setGeminiThread(prev => prev.filter(msg => msg.id !== userMessage.id));
     } finally {
       setIsGeminiThinking(false);
     }
@@ -961,43 +975,153 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
           ></div>
 
           {/* Modal content */}
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full z-50">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
-              Important!
-            </h3>
-            <p className="text-gray-700 text-sm mb-6 text-center">
-              You've reached 20 messages! Hazel has something special to share.
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-md text-center relative">
+            {/* Close button */}
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="m-2 flex justify-center items-center">
+              <Info size={50} className="text-blue-700" />
+            </div>
+            <h2 className="mb-4 text-xl font-bold mb-4 text-black">
+              Continue Chat..?
+            </h2>
+            <p className="mb-4 text-gray-600 mb-6">
+              You’ve had a long chat! Would you like to continue chatting or
+              connect with a professional?
             </p>
-            <div className="space-y-3">
+
+            <div className="mb-2 flex flex-wrap justify-center gap-2">
+              <div>
+                <p
+                  className="text-blue-600 hover:text-blue-700 text-md font-bold mb-2 underline cursor-pointer"
+                  onClick={handleShowPrediction}
+                >
+                  Prediction Chart
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between gap-2">
               <button
-                className="w-full bg-[#0D9488] hover:bg-[#0b7a6f] text-white px-4 py-3 rounded-xl font-medium transition-colors"
                 onClick={() => setShowPopup(false)}
+                className="w-full p-2 bg-gradient-to-r from-emerald-500 from-10% to-emerald-900 to-90% text-white text-sm md:text-md rounded-lg hover:bg-emerald-900"
               >
-                Continue chat
+                Continue Chat
               </button>
               <button
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-                onClick={() => {
-                  // Add functionality for Get Detailed Report
-                  console.log('Get Detailed Report clicked');
-                }}
+                className="w-full p-2 bg-gradient-to-r from-blue-500 from-10% to-blue-900 to-90% rounded-lg hover:bg-blue-900 text-white text-sm md:text-md"
+                onClick={handleShowProfessionals}
               >
-                Get Detailed Report
-              </button>
-              <button
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-                onClick={() => {
-                  // Add functionality for Recommend Professionals
-                  console.log('Recommend Professionals clicked');
-                }}
-              >
-                Recommend Professionals
+                Recommended Professionals
               </button>
             </div>
           </div>
         </div>
       )}
-      `
+      {/* showprediction */}
+      {showPrediction && predictionData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[95%] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
+                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-[#F87171] rounded-full"></div>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
+                </div>
+                <div>
+                  <span className="font-bold">Hazel</span>
+                  <p className="text-xs opacity-90">
+                    Family Stability Analysis
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPrediction(false);
+                  // setShowPopup(false);
+                }}
+                className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
+              >
+                &times;
+              </button>
+            </div>
+            {/* Prediction Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Family Stability Forecast
+                </h3>
+
+                {/* Chart Component */}
+                <PredictionChart data={predictionData} />
+
+                {/* Prediction Message */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-blue-800 text-sm leading-relaxed">
+                    {predictionData.message}
+                  </p>
+                </div>
+
+                {/* Risk Level Indicator */}
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">
+                    Risk Level:
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      predictionData.riskLevel === 'high'
+                        ? 'bg-red-100 text-red-800'
+                        : predictionData.riskLevel === 'medium'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {predictionData.riskLevel.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            {/* <div className="p-4 flex gap-3 bg-white border-t border-gray-100">
+              <Link to="/recommended" className="flex-1">
+                <button
+                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:opacity-90 text-white px-4 py-3 rounded-xl font-medium transition-all"
+                  onClick={onClose}
+                >
+                  Show Recommended Professionals
+                </button>
+              </Link>
+            </div> */}
+          </div>
+        </div>
+      )}
+      {showProfessionals && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[95%] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowProfessionals(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
+            >
+              <X size={22} />
+            </button>
+            <div className="mb-4">
+              <ActionPlan />
+            </div>
+          </div>
+        </div>
+      )}
       <ChatInput
         input={input}
         setInput={setInput}

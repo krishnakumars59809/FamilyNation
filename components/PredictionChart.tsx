@@ -52,7 +52,7 @@ export const PredictionChart = ({ data }: PredictionChartProps) => {
     };
 
     // Chart dimensions (responsive for mobile)
-    let padding = 40;
+    let padding = 20;
     let barWidth = 100;
     let spacing = 80;
 
