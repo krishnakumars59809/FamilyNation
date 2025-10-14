@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
-import { uploadAudioFile } from '../api/hazelChatApi';
+import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 import { sendToPerplexity } from '../api/perflexityApi';
 
@@ -59,22 +59,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         { type: 'bot' as const, content: reply }
       ]);
 
-      // 3. Convert response to speech
-      const ttsResponse = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: reply }),
-      });
-      
-      if (!ttsResponse.ok) {
-        throw new Error('Could not generate speech response');
+      // 3. Convert response to speech via existing API
+      const tts = await textToAudio(reply);
+      const base64 = (tts as any)?.audio;
+      if (!base64) {
+        throw new Error('TTS audio missing');
       }
-      
-      const audioData = await ttsResponse.arrayBuffer();
-      
-      // 4. Play the audio response
+      const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
       setStatus('speaking');
-      await playAudio(audioData, setIsSpeaking);
+      playAudio(audioBuffer, setIsSpeaking);
       setStatus('idle');
       
     } catch (err) {
@@ -118,41 +111,23 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   }, [isSpeaking, status]);
 
-  const getStatusText = () => {
-    switch (status) {
-      case 'listening':
-        return 'Listening...';
-      case 'processing':
-        return 'Processing...';
-      case 'speaking':
-        return 'Speaking...';
-      case 'error':
-        return 'Error occurred';
-      default:
-        return 'Hold to speak';
-    }
-  };
+  // No on-screen text per requirements
 
   return (
     <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Header */}
       <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center">
             <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-              <div className={`w-2 h-2 rounded-full ${
-                status === 'error' ? 'bg-red-500' : 'bg-[#F87171]'
-              }`}></div>
+              <div className={`w-2 h-2 rounded-full ${status === 'error' ? 'bg-red-500' : 'bg-[#F87171]'}`}></div>
             </div>
           </div>
-          <h2 className="font-bold">Voice Assistant</h2>
         </div>
         {onBack && (
-          <button 
-            onClick={onBack}
-            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-md text-sm transition-colors"
-          >
-            Back to Chat
+          <button onClick={onBack} className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center" aria-label="Back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
         )}
       </div>
@@ -238,14 +213,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             )}
           </div>
           
-          {/* Status text */}
-          <div className="mt-6 text-center">
-            <p className={`text-lg font-medium ${
-              status === 'error' ? 'text-red-600' : 'text-gray-700'
-            }`}>
-              {error || getStatusText()}
-            </p>
-          </div>
+          {/* No status text displayed */}
         </div>
       </div>
 
