@@ -667,7 +667,6 @@ ${text}
     return <SpeechAssistant onBack={() => setShowSpeechAssistant(false)} />;
   }
 
-  // Prediction view removed
 
   // Main Chat Interface
   return (
@@ -687,7 +686,7 @@ ${text}
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button 
+          <button
             className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-sm font-medium rounded-lg transition-colors"
             onClick={() => setShowSpeechAssistant(true)}
           >
@@ -743,11 +742,10 @@ ${text}
               </button>
 
               <div
-                className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                  msg?.type === 'user'
+                className={`px-4 py-3 rounded-2xl max-w-[80%] ${msg?.type === 'user'
                     ? 'bg-[#1E3A8A] text-white rounded-br-none'
                     : 'bg-[#0D9488] text-white rounded-bl-none'
-                }`}
+                  }`}
               >
                 <p className="leading-relaxed">{msg?.content}</p>
 
@@ -829,11 +827,10 @@ ${text}
                     )}
                   </button>
                   <div
-                    className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                      m.type === 'user'
+                    className={`px-4 py-3 rounded-2xl max-w-[80%] ${m.type === 'user'
                         ? 'bg-[#1E3A8A] text-white rounded-br-none'
                         : 'bg-[#0D9488] text-white rounded-bl-none'
-                    }`}
+                      }`}
                   >
                     <p className="leading-relaxed">{m.content}</p>
                   </div>
@@ -1051,13 +1048,12 @@ ${text}
                     Risk Level:
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      predictionData.riskLevel === 'high'
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${predictionData.riskLevel === 'high'
                         ? 'bg-red-100 text-red-800'
                         : predictionData.riskLevel === 'medium'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-green-100 text-green-800'
-                    }`}
+                      }`}
                   >
                     {predictionData.riskLevel.toUpperCase()}
                   </span>
