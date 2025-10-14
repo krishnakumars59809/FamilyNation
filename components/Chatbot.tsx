@@ -7,6 +7,7 @@ import { playAudio } from '../utils/playAudio';
 import { PredictionChart } from './PredictionChart';
 import ActionPlan from './ActionPlan';
 import { sendToPerplexity } from '../api/perflexityApi';
+import SpeechAssistant from './SpeechAssistant';
 
 type ChatMessage = {
   id: string;
@@ -76,6 +77,7 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
   const [conversationContext, setConversationContext] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
+  const [showSpeechAssistant, setShowSpeechAssistant] = useState(false);
 
   // Gemini continuation state
   const [geminiThread, setGeminiThread] = useState<
@@ -685,6 +687,11 @@ ${text}
     );
   }
 
+  // If speech assistant is toggled, show it instead of chat UI
+  if (showSpeechAssistant) {
+    return <SpeechAssistant onBack={() => setShowSpeechAssistant(false)} />;
+  }
+
   // Prediction view removed
 
   // Main Chat Interface
@@ -707,10 +714,7 @@ ${text}
         <div className="flex items-center space-x-3">
           <button 
             className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-sm font-medium rounded-lg transition-colors"
-            onClick={() => {
-              // Scroll to the bottom to show the latest messages
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => setShowSpeechAssistant(true)}
           >
             Talk to Assistant
           </button>
