@@ -3,14 +3,7 @@ import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 import { sendToPerplexity } from '../api/perflexityApi';
-
-const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. 
-Your persona is that of a warm, insightful, and trusted therapist. 
-Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, 
-and to provide them with supportive guidance and actionable advice.
-
-Keep your responses concise (1-2 sentences) and conversational. Focus on active listening, 
-asking thoughtful questions, and providing empathetic support.`;
+import { systemPrompt } from './constants/systemPrompt';
 
 const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const { isRecording, audioBlob, startRecording, stopRecording, resetRecording } = useVoiceRecorder();
@@ -270,7 +263,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       </div>
 
       {/* Add animation styles */}
-      <style jsx global>{`
+      <style>{`
         @keyframes audio-wave {
           0% { height: 6px; }
           50% { height: 24px; }
