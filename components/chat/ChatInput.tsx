@@ -11,9 +11,9 @@ interface ChatInputProps {
   canInteract?: boolean;
   chatCompleted: boolean;
   currentQuestion: any;
-  isGeminiThinking: boolean;
+  isThinking: boolean;
   handleSendMessage: () => void;
-  handleGeminiResponse: (userMessage: string) => Promise<void>;
+  handlePerflexityResponse: (userMessage: string) => Promise<void>;
 }
 
 export const ChatInput: FC<ChatInputProps> = ({
@@ -26,9 +26,9 @@ export const ChatInput: FC<ChatInputProps> = ({
   canInteract,
   chatCompleted,
   currentQuestion,
-  isGeminiThinking,
+  isThinking,
   handleSendMessage,
-  handleGeminiResponse,
+  handlePerflexityResponse,
 }) => (
   <div className="border-t p-3 bg-white">
     <div className="flex items-center gap-2">
@@ -41,7 +41,7 @@ export const ChatInput: FC<ChatInputProps> = ({
               ? 'Processing...'
               : isRecording
                 ? ' '
-                : 'Type your message...'
+                : 'Type your message or Speak to Hazel...'
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -56,13 +56,13 @@ export const ChatInput: FC<ChatInputProps> = ({
               const userMessage = input;
               setInput('');
               if (chatCompleted) {
-                await handleGeminiResponse(userMessage);
+                await handlePerflexityResponse(userMessage);
               } else {
                 sendAnswer(input);
               }
             }
           }}
-          disabled={chatCompleted ? isGeminiThinking : !currentQuestion}
+          disabled={chatCompleted ? isThinking : !currentQuestion}
         />
 
         {/* Wave animation container */}
@@ -139,7 +139,7 @@ export const ChatInput: FC<ChatInputProps> = ({
             }
           }}
           disabled={
-            chatCompleted ? isGeminiThinking : !input.trim() || !currentQuestion
+            chatCompleted ? isThinking : !input.trim() || !currentQuestion
           }
         >
           <Send size={20} className="text-white" />

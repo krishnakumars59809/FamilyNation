@@ -77,14 +77,14 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
 
-  // Gemini continuation state
-  const [geminiThread, setGeminiThread] = useState<
+  // Perflexity continuation state
+  const [perplexityMessage, setPerplexityMessage] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
-  const [isGeminiThinking, setIsGeminiThinking] = useState(false);
+  const [isThinking, setisThinking] = useState(false);
   const [freeChatInput, setFreeChatInput] = useState('');
-  const [geminiError, setGeminiError] = useState<string | null>(null);
-  const [lastGeminiRequest, setLastGeminiRequest] = useState<{
+  const [perflexityError, setPerflexityError] = useState<string | null>(null);
+  const [lastPerflexityRequest, setlastPerflexityRequest] = useState<{
     text: string;
     systemPrompt: string;
     useSearch: boolean;
@@ -105,7 +105,7 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, geminiThread, isGeminiThinking]);
+  }, [messages, perplexityMessage, isThinking]);
 
   useEffect(() => {
     if (messages && messages.length >= 13) {
@@ -120,40 +120,6 @@ The tone must be consistently empathetic, calm, patient, and professional. You a
     'API Key loaded:',
     import.meta.env.VITE_PERPLEXITY_API_KEY ? 'Yes' : 'No'
   );
-
-  const sendToGemini1 = async (
-    text: string,
-    systemPrompt: string,
-    conversationContext: { type: 'user' | 'bot'; content: string }[] = [],
-    useSearch = false
-  ): Promise<any> => {
-    try {
-      // 🧩 Build conversation history string
-      const conversationHistory = conversationContext
-        .map(
-          (msg) => `${msg.type === 'user' ? 'User' : 'Hazel'}: ${msg.content}`
-        )
-        .join('\n');
-
-      // 🧠 Combine system prompt + past conversation + new message
-      const fullPrompt = `
-${systemPrompt}
-
-Conversation so far:
-${conversationHistory}
-
-User's new message:
-${text}
-`;
-
-      // 🔗 Send to Gemini
-      const response = await geminiChat(fullPrompt, useSearch);
-      return response;
-    } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      throw error;
-    }
-  };
 
   const sendMessageToPerplexity = async (message: string) => {
     try {
@@ -184,10 +150,10 @@ ${text}
       content: input,
     };
 
-    setGeminiThread((prev) => [...prev, userMessage]);
+    setPerplexityMessage((prev) => [...prev, userMessage]);
     setConversationContext((prev) => [...prev, userMessage]);
     setInput('');
-    setIsGeminiThinking(true);
+    setisThinking(true);
 
     try {
       const reply = await sendMessageToPerplexity(input);
@@ -198,25 +164,25 @@ ${text}
         content: reply,
       };
 
-      setGeminiThread((prev) => [...prev, botMessage]);
+      setPerplexityMessage((prev) => [...prev, botMessage]);
       setConversationContext((prev) => [...prev, botMessage]);
     } catch (err) {
       console.error('Perplexity failed:', err);
     } finally {
-      setIsGeminiThinking(false);
+      setisThinking(false);
     }
   };
 
-  const handleGeminiResponse = async (message: string) => {
+  const handlePerflexityResponse = async (message: string) => {
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       type: 'user',
       content: message,
     };
 
-    setGeminiThread((prev) => [...prev, userMessage]);
+    setPerplexityMessage((prev) => [...prev, userMessage]);
     setConversationContext((prev) => [...prev, userMessage]);
-    setIsGeminiThinking(true);
+    setisThinking(true);
 
     try {
       const reply = await sendMessageToPerplexity(message);
@@ -226,24 +192,24 @@ ${text}
         type: 'bot',
         content: reply,
       };
-
-      setGeminiThread((prev) => [...prev, botMessage]);
+      await handleTextToAudio(botMessage?.content);
+      setPerplexityMessage((prev) => [...prev, botMessage]);
       setConversationContext((prev) => [...prev, botMessage]);
     } catch (err) {
       console.error('Error:', err);
     } finally {
-      setIsGeminiThinking(false);
+      setisThinking(false);
     }
   };
 
-  const requestGemini = async (
+  const requestPerflexity = async (
     text: string,
     systemPrompt: string,
     useSearch: boolean,
     retryOnSearchFail = true
   ): Promise<string> => {
-    setLastGeminiRequest({ text, systemPrompt, useSearch });
-    setGeminiError(null);
+    setlastPerflexityRequest({ text, systemPrompt, useSearch });
+    setPerflexityError(null);
     try {
       return await sendMessageToPerplexity(text);
     } catch (err) {
@@ -251,13 +217,13 @@ ${text}
         try {
           return await sendMessageToPerplexity(text);
         } catch (err2) {
-          setGeminiError(
+          setPerflexityError(
             'Unable to fetch suggestions. Please check connectivity or API key.'
           );
           throw err2;
         }
       } else {
-        setGeminiError(
+        setPerflexityError(
           'Unable to fetch suggestions. Please check connectivity or API key.'
         );
         throw err;
@@ -265,46 +231,21 @@ ${text}
     }
   };
 
-  // Start Gemini continuation once assessment completes
+  // Start Perflexity continuation once assessment completes
   useEffect(() => {
-    const alreadyStarted = geminiThread.length > 0 || isGeminiThinking;
+    const alreadyStarted = perplexityMessage.length > 0 || isThinking;
     if (chatCompleted && !alreadyStarted) {
       const userAnswers = messages
         ?.filter((m) => m.type === 'user')
         ?.map((m) => m.content)
         ?.join(', ');
-      const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
 
-        // MODIFIED: The goal is now proactive support, not just understanding.
-        Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
-        
-        // NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
-        **Interaction Style:**
-        - **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
-        - **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
-        - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
-        - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
-        
-        // REMOVED: The old critical safety protocol that forbade advice.
-        // NEW: Replaced with a more nuanced ethical guideline.
-        **Ethical Guideline & Disclaimer:**
-        While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
-        
-        You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
-        
-        // MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
-        Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
-        
-        Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
-        
-        The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
-
-      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 100 words and strictly within 2-3 senetences only`;
+      const userQuery = `Here is the family context based on the assessment answers: ${userAnswers}. Provide a short supportive next-step message.not exceeding 50 words and strictly within 2-3 senetences only`;
 
       (async () => {
         try {
-          setIsGeminiThinking(true);
-          const reply = await requestGemini(
+          // setisThinking(true);
+          const reply = await requestPerflexity(
             userQuery,
             systemPrompt,
             true,
@@ -313,12 +254,12 @@ ${text}
           const botMsg =
             reply ||
             "I'm having trouble reaching my resources right now. For immediate help, consider contacting a local professional or hotline.";
-          setGeminiThread([
+          setPerplexityMessage([
             { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
           ]);
-          // handleTextToAudio(botMsg);
+          handleTextToAudio(botMsg);
         } catch (e) {
-          setGeminiThread((prev) => [
+          setPerplexityMessage((prev) => [
             ...prev,
             {
               id: `bot-${Date.now()}`,
@@ -328,59 +269,33 @@ ${text}
             },
           ]);
         } finally {
-          setIsGeminiThinking(false);
+          setisThinking(false);
         }
       })();
     }
   }, [chatCompleted]);
 
-  const sendFreeChatToGemini = async () => {
+  const sendFreeChatToPerflexity = async () => {
     const text = freeChatInput.trim();
-    if (!text || isGeminiThinking) return;
+    if (!text || isThinking) return;
     const newUser = {
       id: `user-${Date.now()}`,
       type: 'user' as const,
       content: text,
     };
-    setGeminiThread((prev) => [...prev, newUser]);
+    setPerplexityMessage((prev) => [...prev, newUser]);
     setFreeChatInput('');
-    setIsGeminiThinking(true);
+    setisThinking(true);
     try {
-      const systemPrompt = `You are Hazel, a compassionate and professional AI therapist from FamilyNation. Your persona is that of a warm, insightful, and trusted therapist. Your primary role is to create a safe, non-judgmental space where users feel comfortable sharing their concerns, and to provide them with supportive guidance and actionable advice.
-
-      // MODIFIED: The goal is now proactive support, not just understanding.
-      Your primary goal is to help the user navigate their feelings and challenges by offering gentle advice, coping mechanisms, and communication strategies. Engage in a thoughtful, multi-turn conversation to explore their concerns, and then provide constructive, empowering feedback.
-      
-      // NEW: This section empowers Hazel to be interactive and use therapeutic techniques.
-      **Interaction Style:**
-      - **Active Listening:** Start by deeply understanding the user. Use reflective statements like, "It sounds like you're feeling overwhelmed because of X..." to show you're listening.
-      - **Ask Insightful Questions:** Continue to ask open-ended questions ("How has this been affecting your daily life?", "What does an ideal resolution look like to you?").
-      - **Provide Gentle Advice:** Based on their situation, offer practical suggestions. Frame them as possibilities to explore, not commands. For example: "Have you considered trying...", "One approach that sometimes helps is...", "Perhaps we could explore what might happen if you...".
-      - **Introduce Simple Exercises:** Once in a while, suggest a small, guided thought exercise. For example, "Let's try to reframe that thought. What's one piece of evidence that contradicts that belief?" or "Take a moment and think of one small thing you have control over in this situation."
-      
-      // REMOVED: The old critical safety protocol that forbade advice.
-      // NEW: Replaced with a more nuanced ethical guideline.
-      **Ethical Guideline & Disclaimer:**
-      While you are acting as a therapist, it is crucial to be transparent about your nature as an AI. You are a tool for support, not a replacement for a licensed human professional. If the user discusses severe mental health crises, self-harm, or situations requiring immediate intervention, your primary responsibility is to gently but clearly guide them to seek immediate help from a crisis hotline or a human professional. Periodically, in a natural and non-disruptive way, you can remind the user that you're an AI here to support them on their journey.
-      
-      You are operating within the FamilyNation website. Users are here seeking support for various family-related matters, which can be deeply personal and sensitive.
-      
-      // MODIFIED: Slightly relaxed the strictness to allow for more detailed advice.
-      Your response should be a conversational response, typically under 150 words to remain digestible. Your language must be clear, simple, and reassuring. Structure your responses to be helpful and to guide the conversation forward.
-      
-      Your audience consists of individuals and families who may be feeling stressed, confused, or vulnerable. Your interaction should make them feel deeply heard, validated, and empowered with new perspectives and strategies.
-      
-      The tone must be consistently empathetic, calm, patient, and professional. You are here to listen, help the user explore their thoughts, and offer supportive guidance to help them find solutions.`;
-
-      const reply = await requestGemini(text, systemPrompt, false, false);
+      const reply = await requestPerflexity(text, systemPrompt, false, false);
       const botMsg = reply || "I couldn't process that. Could you rephrase?";
-      setGeminiThread((prev) => [
+      setPerplexityMessage((prev) => [
         ...prev,
         { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
       ]);
       handleTextToAudio(botMsg);
     } catch (e) {
-      setGeminiThread((prev) => [
+      setPerplexityMessage((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
@@ -389,19 +304,24 @@ ${text}
         },
       ]);
     } finally {
-      setIsGeminiThinking(false);
+      setisThinking(false);
     }
   };
 
-  const retryLastGemini = async () => {
-    if (!lastGeminiRequest || isGeminiThinking) return;
-    const { text, systemPrompt, useSearch } = lastGeminiRequest;
-    setIsGeminiThinking(true);
-    setGeminiError(null);
+  const retryLastPerflexity = async () => {
+    if (!lastPerflexityRequest || isThinking) return;
+    const { text, systemPrompt, useSearch } = lastPerflexityRequest;
+    setisThinking(true);
+    setPerflexityError(null);
     try {
-      const reply = await requestGemini(text, systemPrompt, useSearch, true);
+      const reply = await requestPerflexity(
+        text,
+        systemPrompt,
+        useSearch,
+        true
+      );
       const botMsg = reply || "I couldn't process that. Could you rephrase?";
-      setGeminiThread((prev) => [
+      setPerplexityMessage((prev) => [
         ...prev,
         { id: `bot-${Date.now()}`, type: 'bot', content: botMsg },
       ]);
@@ -409,13 +329,12 @@ ${text}
     } catch (e) {
       // error already captured
     } finally {
-      setIsGeminiThinking(false);
+      setisThinking(false);
     }
   };
 
   const handleMicClick = async () => {
     if (!isRecording) {
-      setIsRecording(true);
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -423,6 +342,7 @@ ${text}
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
         audioChunksRef.current = [];
+        setIsRecording(true);
 
         mediaRecorder.addEventListener('dataavailable', (event) => {
           if (event.data.size > 0) audioChunksRef.current.push(event.data);
@@ -432,16 +352,15 @@ ${text}
           const audioBlob = new Blob(audioChunksRef.current, {
             type: 'audio/mpeg',
           });
-          setRecording(audioBlob);
           setIsRecording(false);
           await handleUpload(audioBlob);
         });
 
         mediaRecorder.start();
       } catch (err) {
-        console.error('Mic error', err);
-        alert('Cannot access microphone');
+        console.error('Microphone access denied:', err);
         setIsRecording(false);
+        alert('Please allow microphone access.');
       }
     } else {
       mediaRecorderRef.current?.stop();
@@ -450,18 +369,48 @@ ${text}
 
   const handleUpload = async (blob: Blob) => {
     setIsProcessing(true);
+
     try {
-      const file = new File([blob], `${recordingIdRef.current}.mp3`, {
+      const file = new File([blob], `voice_${Date.now()}.mp3`, {
         type: 'audio/mpeg',
       });
+
+      // Send to your ASR endpoint
       const res = await uploadAudioFile(file);
-      const formatted = capitalizeFirstLetter(res.text);
-      setInput(formatted); // transcription appears in input
-      setIsProcessing(false);
-      recordingIdRef.current = `rec_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const userTranscription = capitalizeFirstLetter(res.text || '');
+      if (!userTranscription) throw new Error('Empty transcription');
+
+      //  Text visibe on the Input
+      // setInput(userTranscription);
+
+      // Display user message
+      const userMsg = {
+        id: `user-${Date.now()}`,
+        type: 'user' as const,
+        content: userTranscription,
+      };
+      setPerplexityMessage((prev) => [...prev, userMsg]);
+      setConversationContext((prev) => [...prev, userMsg]);
+
+      // Send transcription to AI (Perplexity)
+      const aiReply = await sendMessageToPerplexity(userTranscription);
+
+      // Add AI response to messages
+      const botMsg = {
+        id: `bot-${Date.now() + 1}`,
+        type: 'bot' as const,
+        content: aiReply,
+      };
+      setPerplexityMessage((prev) => [...prev, botMsg]);
+      setConversationContext((prev) => [...prev, botMsg]);
+
+      // Convert AI response → Speech → Play
+      await handleTextToAudio(aiReply);
     } catch (err) {
-      console.error(err);
-      setInput('Upload failed');
+      console.error('Transcription or AI processing failed:', err);
+      setInput('Error processing voice');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -808,10 +757,10 @@ ${text}
           </div>
         )} */}
 
-        {/* Gemini continuation thread and composer */}
+        {/* Perflexity continuation thread and composer */}
         {chatCompleted && (
           <div className="mt-3 space-y-3">
-            {geminiThread.map((m) => {
+            {perplexityMessage.map((m) => {
               const isThisPlaying = playingId === m?.id;
               return (
                 <div
@@ -855,7 +804,7 @@ ${text}
                 </div>
               );
             })}
-            {isGeminiThinking && (
+            {isThinking && (
               <div className="flex gap-2 justify-start items-center">
                 <div className="h-10 w-10 bg-[#0D9488] text-white rounded-full flex items-center justify-center">
                   <svg
@@ -890,29 +839,29 @@ ${text}
                 onChange={(e) => setFreeChatInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    sendFreeChatToGemini();
+                    sendFreeChatToPerflexity();
                   }
                 }}
               />
               <button
                 className="bg-[#0D9488] hover:bg-[#0c7c6f] text-white px-4 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!freeChatInput.trim() || isGeminiThinking}
-                onClick={sendFreeChatToGemini}
+                disabled={!freeChatInput.trim() || isThinking}
+                onClick={sendFreeChatToPerflexity}
               >
                 Send
               </button> */}
-              {geminiError && (
+              {perflexityError && (
                 <button
                   className="ml-2 bg-[#1E3A8A] hover:bg-[#152e6b] text-white px-3 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isGeminiThinking}
-                  onClick={retryLastGemini}
+                  disabled={isThinking}
+                  onClick={retryLastPerflexity}
                 >
                   Retry
                 </button>
               )}
             </div>
-            {geminiError && (
-              <div className="text-xs text-red-600 pt-1">{geminiError}</div>
+            {perflexityError && (
+              <div className="text-xs text-red-600 pt-1">{perflexityError}</div>
             )}
           </div>
         )}
@@ -1121,9 +1070,9 @@ ${text}
         // disabled={!canInteract}
         chatCompleted={chatCompleted}
         currentQuestion={currentQuestion}
-        isGeminiThinking={isGeminiThinking}
+        isThinking={isThinking}
         handleSendMessage={handleSendMessage}
-        handleGeminiResponse={handleGeminiResponse}
+        handlePerflexityResponse={handlePerflexityResponse}
       />
     </div>
   );

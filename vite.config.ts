@@ -15,7 +15,9 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // Expose only the variables you need to the frontend
-      'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'import.meta.env.VITE_PERPLEXITY_API_KEY': JSON.stringify(
+        env.VITE_PERPLEXITY_API_KEY
+      ),
       'import.meta.env.VITE_API_BASE': JSON.stringify(
         env.VITE_API_BASE || 'http://localhost:4000/api'
       ),
