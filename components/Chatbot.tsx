@@ -33,7 +33,6 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [input, setInput] = useState('');
-  const [showFamilyProfile, setShowFamilyProfile] = useState(true); // NEW: Show profile first
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -52,7 +51,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [conversationContext, setConversationContext] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
-  const [showSpeechAssistant, setShowSpeechAssistant] = useState(false);
+  const [showSpeechAssistant, setShowSpeechAssistant] = useState(true); // Start with speech assistant by default
 
   // Gemini continuation state
   const [geminiThread, setGeminiThread] = useState<
@@ -446,10 +445,6 @@ ${text}
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
-  function handleStartHazel() {
-    setShowFamilyProfile(false);
-    setStart(true);
-  }
 
   const handleTextToAudio = async (text: string, onFinish?: () => void) => {
     try {
@@ -476,7 +471,7 @@ ${text}
 
   // TODO
   // useEffect(() => {
-  //   if (!messages || messages?.length === 0 || showFamilyProfile) return;
+  //   if (!messages || messages?.length === 0) return;
 
   //   const lastMsg = messages?.[messages?.length - 1];
 
@@ -504,167 +499,10 @@ ${text}
       </div>
     );
 
-  // NEW: Show family profile screen first
-  if (showFamilyProfile) {
-    return (
-      <div className="flex flex-col h-[100vh] w-full  bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="h-[10vh] p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-[#F87171] rounded-full"></div>
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
-            </div>
-            <div>
-              <span className="font-bold">FamilyNation</span>
-              <p className="text-xs opacity-90">It Starts at Home</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Family Profile Content */}
-        <div className="h-[40vh] bg-gray-50">
-          <div className="bg-white lg:rounded-xl p-2 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">
-              Meet the Johnson Family
-            </h3>
-
-            {/* Family Avatars Grid */}
-            <div className="h-[30vh] flex-1 overflow-y-auto grid md:grid-cols-2 gap-4 mb-6">
-              {/* Daughter */}
-              <div className="bg-red-50 p-4 rounded-lg border border-red-100  ">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
-                    <span className="text-red-600 font-bold">D</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-red-800">
-                      Daughter (17)
-                    </span>
-                    <p className="text-xs text-red-600">High School Student</p>
-                  </div>
-                </div>
-                <ul className="text-xs text-red-700 space-y-1">
-                  <li>• Learning impairment</li>
-                  <li>• Being bullied at school</li>
-                  <li>• Slipping grades</li>
-                  <li>• Experimenting with drugs</li>
-                </ul>
-              </div>
-
-              {/* Son */}
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold">S</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-blue-800">
-                      Son (19)
-                    </span>
-                    <p className="text-xs text-blue-600">College Student</p>
-                  </div>
-                </div>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• Confrontational behavior</li>
-                  <li>• Anxiety and frustration</li>
-                  <li>• Resentful towards family</li>
-                </ul>
-              </div>
-
-              {/* Mother */}
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 font-bold">M</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-purple-800">
-                      Mother
-                    </span>
-                    <p className="text-xs text-purple-600">
-                      Working Professional
-                    </p>
-                  </div>
-                </div>
-                <ul className="text-xs text-purple-700 space-y-1">
-                  <li>• Anxiety and depression</li>
-                  <li>• Under psychiatric care</li>
-                  <li>• Overwhelmed by family issues</li>
-                </ul>
-              </div>
-
-              {/* Father */}
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-bold">F</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-green-800">Father</span>
-                    <p className="text-xs text-green-600">
-                      Working Professional
-                    </p>
-                  </div>
-                </div>
-                <ul className="text-xs text-green-700 space-y-1">
-                  <li>• Job insecurity</li>
-                  <li>• Financial stress</li>
-                  <li>• Marital conflict</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="h-[40vh] p-2">
-          {/* Family Challenges Summary */}
-          <div className="h-[20vh] bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-            <h4 className="font-semibold text-yellow-800 mb-2">
-              Family Challenges:
-            </h4>
-            <ul className="text-xs text-yellow-700 space-y-1">
-              <li>• Parents have combative marriage</li>
-              <li>• Disagreement on solutions</li>
-              <li>• Stress spills over to school/work</li>
-              <li>• Risk of family breakdown</li>
-            </ul>
-          </div>
-
-          {/* Narration from document */}
-          <div className="h-[20vh] mt-4">
-            <p className="p-4 text-sm text-gray-700 italic bg-gray-100 rounded-lg">
-              "This family looks like so many others. Stress, conflict, and
-              hardship don't stay at home — they spill over into schools,
-              workplaces, and communities."
-            </p>
-          </div>
-        </div>
-
-        {/* Start Chat Button */}
-        <div className="p-2">
-          <button
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-900 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-            onClick={handleStartHazel}
-          >
-            Start Assessment with Hazel
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // If speech assistant is toggled, show it instead of chat UI
   if (showSpeechAssistant) {
-    return <SpeechAssistant onBack={() => setShowSpeechAssistant(false)} />;
+    return <SpeechAssistant onBack={onClose} />;
   }
 
 
@@ -686,12 +524,6 @@ ${text}
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button
-            className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-sm font-medium rounded-lg transition-colors"
-            onClick={() => setShowSpeechAssistant(true)}
-          >
-            Talk to Assistant
-          </button>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full hover:bg-white hover:bg-opacity-20 flex items-center justify-center transition-colors"

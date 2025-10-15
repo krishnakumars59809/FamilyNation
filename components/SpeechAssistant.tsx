@@ -12,11 +12,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const [status, setStatus] = useState<'idle' | 'listening' | 'processing' | 'speaking' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [conversationContext, setConversationContext] = useState<Array<{ type: 'user' | 'bot'; content: string }>>([]);
+  const [hasWelcomed, setHasWelcomed] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ id: string; type: 'user' | 'bot'; content: string; timestamp: Date }>>([]);
+  const [autoListenNext, setAutoListenNext] = useState(false);
 
   // Process audio and get response
   const processAudio = async () => {
     if (!audioBlob) return;
-    
+
     setIsProcessing(true);
     setStatus('processing');
     setError(null);
@@ -26,7 +29,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const file = new File([audioBlob], `speech-${Date.now()}.wav`, { type: 'audio/wav' });
       const sttResponse = await uploadAudioFile(file);
       const userText = sttResponse?.text?.trim();
-      
+
       if (!userText) {
         throw new Error('Could not understand your voice. Please try again.');
       }
@@ -37,6 +40,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         { type: 'user' as const, content: userText }
       ];
       setConversationContext(updatedContext);
+
+      // Add user message to conversation history
+      const userEntry = {
+        id: `user-${Date.now()}`,
+        type: 'user' as const,
+        content: userText,
+        timestamp: new Date()
+      };
+      setConversationHistory(prev => [...prev, userEntry]);
 
       // 2. Get response from Perplexity AI
       const reply = await sendToPerplexity(
@@ -52,6 +64,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         { type: 'bot' as const, content: reply }
       ]);
 
+      // Add bot response to conversation history
+      const botEntry = {
+        id: `bot-${Date.now()}`,
+        type: 'bot' as const,
+        content: reply,
+        timestamp: new Date()
+      };
+      setConversationHistory(prev => [...prev, botEntry]);
+
       // 3. Convert response to speech via existing API
       const tts = await textToAudio(reply);
       const base64 = (tts as any)?.audio;
@@ -60,14 +81,26 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       }
       const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
       setStatus('speaking');
-      playAudio(audioBuffer, setIsSpeaking);
-      setStatus('idle');
-      
+
+      // Play the audio and set up auto-listen for after speech completes
+      playAudio(audioBuffer, setIsSpeaking, () => {
+        // This callback runs when audio finishes playing
+        if (autoListenNext) {
+          // Small delay before starting to listen again
+          setTimeout(() => {
+            startRecording();
+          }, 500);
+        }
+      });
+
+      // Enable auto-listen for the next user input
+      setAutoListenNext(true);
+
     } catch (err) {
       console.error('Error in speech processing:', err);
       setStatus('error');
       setError(err instanceof Error ? err.message : 'An error occurred');
-      
+
       // Reset after showing error
       setTimeout(() => {
         setError(null);
@@ -82,7 +115,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   // Process audio when new recording is available
   useEffect(() => {
     if (audioBlob && !isProcessing) {
-      processAudio();
+      // Only process if we have a non-empty audio blob
+      if (audioBlob.size > 0) {
+        processAudio();
+      } else {
+        // If we get an empty audio blob (from silence detection), reset the state
+        resetRecording();
+        setStatus('idle');
+      }
     }
   }, [audioBlob]);
 
@@ -91,9 +131,28 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     if (isRecording) {
       setStatus('listening');
     } else if (status === 'listening') {
-      setStatus('processing');
+      // When recording stops, set to processing if we have audio to process
+      if (audioBlob && audioBlob.size > 0) {
+        setStatus('processing');
+      } else {
+        setStatus('idle');
+      }
     }
-  }, [isRecording, status]);
+  }, [isRecording, status, audioBlob]);
+
+  // Auto-start listening when component mounts or after processing
+  useEffect(() => {
+    if (status === 'idle' && !isProcessing && !isSpeaking) {
+      // Small delay before starting to listen again
+      const timer = setTimeout(() => {
+        if (!isRecording && !isProcessing) {
+          startRecording();
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [status, isProcessing, isSpeaking, isRecording]);
 
   // Handle speaking state changes
   useEffect(() => {
@@ -101,8 +160,71 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       setStatus('speaking');
     } else if (status === 'speaking') {
       setStatus('idle');
+
+      // Auto-start listening after Hazel finishes speaking if autoListenNext is true
+      if (autoListenNext && !isProcessing) {
+        // Small delay before starting to listen again
+        const timer = setTimeout(() => {
+          startRecording();
+          setAutoListenNext(false); // Reset after starting to listen
+        }, 500);
+
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isSpeaking, status]);
+  }, [isSpeaking, status, autoListenNext, isProcessing, startRecording]);
+
+  // Welcome greeting when component mounts
+  useEffect(() => {
+    if (!hasWelcomed) {
+      const welcomeMessage = "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+
+      const playWelcome = async () => {
+        try {
+          setStatus('speaking');
+
+          // Add welcome message to conversation history
+          const welcomeEntry = {
+            id: `welcome-${Date.now()}`,
+            type: 'bot' as const,
+            content: welcomeMessage,
+            timestamp: new Date()
+          };
+          setConversationHistory([welcomeEntry]);
+
+          const tts = await textToAudio(welcomeMessage);
+          const base64 = (tts as any)?.audio;
+          if (base64) {
+            const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
+            // Enable auto-listen after Hazel finishes speaking
+            setAutoListenNext(true);
+            await playAudio(audioBuffer, setIsSpeaking);
+          }
+          setStatus('idle');
+        } catch (err) {
+          console.error('Error playing welcome message:', err);
+          setStatus('idle');
+        } finally {
+          setHasWelcomed(true);
+        }
+      };
+
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(playWelcome, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasWelcomed]);
+
+  // Auto-start microphone recording when Hazel finishes speaking
+  useEffect(() => {
+    if (!isSpeaking && autoListenNext && !isRecording && !isProcessing) {
+      setAutoListenNext(false);
+      // slight delay to avoid race with state updates
+      setTimeout(() => {
+        startRecording();
+      }, 200);
+    }
+  }, [isSpeaking, autoListenNext, isRecording, isProcessing, startRecording]);
 
   // No on-screen text per requirements
 
@@ -110,10 +232,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
             <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
               <div className={`w-2 h-2 rounded-full ${status === 'error' ? 'bg-red-500' : 'bg-[#F87171]'}`}></div>
             </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
+          </div>
+          <div>
+            <span className="font-bold text-lg">Hazel</span>
+            <p className="text-xs opacity-90">Voice Assistant</p>
           </div>
         </div>
         {onBack && (
@@ -125,34 +252,98 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div className="relative mb-8">
-          {/* Animated microphone icon */}
-          <div className={`relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
-            status === 'listening' 
-              ? 'bg-red-100 scale-110' 
+      {/* Horizontal Layout: 60% History + 40% Voice UI */}
+      <div className="flex-1 flex">
+        {/* Conversation History - 60% */}
+        <div className="w-[60%] border-r bg-white overflow-y-auto">
+          {conversationHistory.length > 0 ? (
+            <div className="p-4 space-y-4">
+              {conversationHistory.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] px-3 py-2 rounded-lg ${message.type === 'user'
+                      ? 'bg-[#0D9488] text-white'
+                      : 'bg-gray-100 text-gray-800'
+                      }`}
+                  >
+                    <div className="text-sm">{message.content}</div>
+                    <div className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                      {message.timestamp.toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <div className="text-lg mb-2">💬</div>
+                <div className="text-sm">Conversation will appear here</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Voice Interface - 40% */}
+        <div className="w-[40%] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-gray-50 to-gray-100">
+          <div className="relative mb-8">
+            {/* Animated microphone icon */}
+            <div className={`relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${status === 'listening'
+              ? 'bg-red-100 scale-110'
               : status === 'processing' || status === 'speaking'
-                ? 'bg-blue-50'
+                ? 'bg-green-50'
                 : 'bg-white'
-          } shadow-lg`}>
-            <div className={`p-6 rounded-full ${
-              status === 'listening' 
-                ? 'bg-red-500 text-white' 
-                : status === 'processing' 
-                  ? 'bg-blue-100 text-blue-600' 
+              } shadow-lg`}>
+              <div className={`p-6 rounded-full ${status === 'listening'
+                ? 'bg-red-500 text-white'
+                : status === 'processing'
+                  ? 'bg-blue-100 text-blue-600'
                   : status === 'speaking'
                     ? 'bg-green-100 text-green-600'
                     : 'bg-gray-100 text-gray-600'
-            }`}>
-              {status === 'listening' ? (
-                <div className="relative w-12 h-12">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                }`}>
+                {status === 'listening' ? (
+                  <div className="relative w-12 h-12">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-12 w-12 relative z-10"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                      />
+                    </svg>
                   </div>
+                ) : status === 'processing' ? (
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                ) : status === 'speaking' ? (
+                  <div className="flex items-center justify-center space-x-1">
+                    <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
+                    <div className="w-1 h-8 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
+                    <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
+                  </div>
+                ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 relative z-10"
+                    className="h-12 w-12"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -164,25 +355,56 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                       d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                     />
                   </svg>
-                </div>
-              ) : status === 'processing' ? (
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                )}
+              </div>
+
+              {/* Animated rings when listening */}
+              {status === 'listening' && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-red-200 opacity-70 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-red-100 opacity-70 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                </>
+              )}
+            </div>
+
+          </div>
+
+          {/* Controls */}
+          {/* <div className="p-6">
+          <div className="flex justify-center">
+            <button
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              onMouseLeave={isRecording ? stopRecording : undefined}
+              disabled={isProcessing || isSpeaking}
+              className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
+                status === 'listening'
+                  ? 'bg-red-600 hover:bg-red-700 scale-110'
+                  : status === 'processing' || status === 'speaking'
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-[#0D9488] hover:bg-[#0f766e]'
+              }`}
+            >
+              {status === 'processing' ? (
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               ) : status === 'speaking' ? (
-                <div className="flex items-center justify-center space-x-1">
-                  <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-                  <div className="w-1 h-8 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-                  <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-                  <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
+                  <div className="w-1 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
+                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
                 </div>
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12"
+                  className="h-8 w-8"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -195,70 +417,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   />
                 </svg>
               )}
-            </div>
-            
-            {/* Animated rings when listening */}
-            {status === 'listening' && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-red-200 opacity-70 animate-ping"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-red-100 opacity-70 animate-ping" style={{ animationDelay: '0.5s' }}></div>
-              </>
-            )}
+            </button>
           </div>
-          
-          {/* No status text displayed */}
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="p-6">
-        <div className="flex justify-center">
-          <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            onMouseLeave={isRecording ? stopRecording : undefined}
-            disabled={isProcessing || isSpeaking}
-            className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
-              status === 'listening'
-                ? 'bg-red-600 hover:bg-red-700 scale-110'
-                : status === 'processing' || status === 'speaking'
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-[#0D9488] hover:bg-[#0f766e]'
-            }`}
-          >
-            {status === 'processing' ? (
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            ) : status === 'speaking' ? (
-              <div className="flex items-center space-x-1">
-                <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-                <div className="w-1 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-                <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-                <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
-              </div>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-            )}
-          </button>
+        </div> */}
         </div>
       </div>
 
