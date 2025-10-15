@@ -12,6 +12,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const [status, setStatus] = useState<'idle' | 'listening' | 'processing' | 'speaking' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [conversationContext, setConversationContext] = useState<Array<{ type: 'user' | 'bot'; content: string }>>([]);
+  const [hasWelcomed, setHasWelcomed] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ id: string; type: 'user' | 'bot'; content: string; timestamp: Date }>>([]);
 
   // Process audio and get response
   const processAudio = async () => {
@@ -38,6 +40,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       ];
       setConversationContext(updatedContext);
 
+      // Add user message to conversation history
+      const userEntry = {
+        id: `user-${Date.now()}`,
+        type: 'user' as const,
+        content: userText,
+        timestamp: new Date()
+      };
+      setConversationHistory(prev => [...prev, userEntry]);
+
       // 2. Get response from Perplexity AI
       const reply = await sendToPerplexity(
         userText,
@@ -51,6 +62,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         ...prev,
         { type: 'bot' as const, content: reply }
       ]);
+
+      // Add bot response to conversation history
+      const botEntry = {
+        id: `bot-${Date.now()}`,
+        type: 'bot' as const,
+        content: reply,
+        timestamp: new Date()
+      };
+      setConversationHistory(prev => [...prev, botEntry]);
 
       // 3. Convert response to speech via existing API
       const tts = await textToAudio(reply);
@@ -104,16 +124,60 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   }, [isSpeaking, status]);
 
+  // Welcome greeting when component mounts
+  useEffect(() => {
+    if (!hasWelcomed) {
+      const welcomeMessage = "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+      
+      const playWelcome = async () => {
+        try {
+          setStatus('speaking');
+          
+          // Add welcome message to conversation history
+          const welcomeEntry = {
+            id: `welcome-${Date.now()}`,
+            type: 'bot' as const,
+            content: welcomeMessage,
+            timestamp: new Date()
+          };
+          setConversationHistory([welcomeEntry]);
+          
+          const tts = await textToAudio(welcomeMessage);
+          const base64 = (tts as any)?.audio;
+          if (base64) {
+            const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
+            await playAudio(audioBuffer, setIsSpeaking);
+          }
+          setStatus('idle');
+        } catch (err) {
+          console.error('Error playing welcome message:', err);
+          setStatus('idle');
+        } finally {
+          setHasWelcomed(true);
+        }
+      };
+
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(playWelcome, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasWelcomed]);
+
   // No on-screen text per requirements
 
   return (
     <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
             <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
               <div className={`w-2 h-2 rounded-full ${status === 'error' ? 'bg-red-500' : 'bg-[#F87171]'}`}></div>
             </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
+          </div>
+          <div>
+            <span className="font-bold text-lg">Hazel</span>
+            <p className="text-xs opacity-90">Voice Assistant</p>
           </div>
         </div>
         {onBack && (
@@ -125,8 +189,46 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      {/* Horizontal Layout: 60% History + 40% Voice UI */}
+      <div className="flex-1 flex">
+        {/* Conversation History - 60% */}
+        <div className="w-[60%] border-r bg-white overflow-y-auto">
+          {conversationHistory.length > 0 ? (
+            <div className="p-4 space-y-4">
+              {conversationHistory.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                      message.type === 'user'
+                        ? 'bg-[#0D9488] text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    <div className="text-sm">{message.content}</div>
+                    <div className={`text-xs mt-1 ${
+                      message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                    }`}>
+                      {message.timestamp.toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <div className="text-lg mb-2">💬</div>
+                <div className="text-sm">Conversation will appear here</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Voice Interface - 40% */}
+        <div className="w-[40%] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-gray-50 to-gray-100">
         <div className="relative mb-8">
           {/* Animated microphone icon */}
           <div className={`relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
@@ -208,57 +310,58 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           
           {/* No status text displayed */}
         </div>
-      </div>
 
-      {/* Controls */}
-      <div className="p-6">
-        <div className="flex justify-center">
-          <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            onMouseLeave={isRecording ? stopRecording : undefined}
-            disabled={isProcessing || isSpeaking}
-            className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
-              status === 'listening'
-                ? 'bg-red-600 hover:bg-red-700 scale-110'
-                : status === 'processing' || status === 'speaking'
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-[#0D9488] hover:bg-[#0f766e]'
-            }`}
-          >
-            {status === 'processing' ? (
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            ) : status === 'speaking' ? (
-              <div className="flex items-center space-x-1">
-                <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-                <div className="w-1 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-                <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-                <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
-              </div>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-            )}
-          </button>
+        {/* Controls */}
+        <div className="p-6">
+          <div className="flex justify-center">
+            <button
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              onMouseLeave={isRecording ? stopRecording : undefined}
+              disabled={isProcessing || isSpeaking}
+              className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
+                status === 'listening'
+                  ? 'bg-red-600 hover:bg-red-700 scale-110'
+                  : status === 'processing' || status === 'speaking'
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-[#0D9488] hover:bg-[#0f766e]'
+              }`}
+            >
+              {status === 'processing' ? (
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              ) : status === 'speaking' ? (
+                <div className="flex items-center space-x-1">
+                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
+                  <div className="w-1 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
+                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
+                </div>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
         </div>
       </div>
 
