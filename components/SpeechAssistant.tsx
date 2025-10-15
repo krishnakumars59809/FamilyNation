@@ -14,6 +14,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const [conversationContext, setConversationContext] = useState<Array<{ type: 'user' | 'bot'; content: string }>>([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<Array<{ id: string; type: 'user' | 'bot'; content: string; timestamp: Date }>>([]);
+  const [autoListenNext, setAutoListenNext] = useState(false);
 
   // Process audio and get response
   const processAudio = async () => {
@@ -80,8 +81,20 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       }
       const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
       setStatus('speaking');
-      playAudio(audioBuffer, setIsSpeaking);
-      setStatus('idle');
+      
+      // Play the audio and set up auto-listen for after speech completes
+      playAudio(audioBuffer, setIsSpeaking, () => {
+        // This callback runs when audio finishes playing
+        if (autoListenNext) {
+          // Small delay before starting to listen again
+          setTimeout(() => {
+            startRecording();
+          }, 500);
+        }
+      });
+      
+      // Enable auto-listen for the next user input
+      setAutoListenNext(true);
       
     } catch (err) {
       console.error('Error in speech processing:', err);
@@ -102,7 +115,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   // Process audio when new recording is available
   useEffect(() => {
     if (audioBlob && !isProcessing) {
-      processAudio();
+      // Only process if we have a non-empty audio blob
+      if (audioBlob.size > 0) {
+        processAudio();
+      } else {
+        // If we get an empty audio blob (from silence detection), reset the state
+        resetRecording();
+        setStatus('idle');
+      }
     }
   }, [audioBlob]);
 
@@ -111,9 +131,28 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     if (isRecording) {
       setStatus('listening');
     } else if (status === 'listening') {
-      setStatus('processing');
+      // When recording stops, set to processing if we have audio to process
+      if (audioBlob && audioBlob.size > 0) {
+        setStatus('processing');
+      } else {
+        setStatus('idle');
+      }
     }
-  }, [isRecording, status]);
+  }, [isRecording, status, audioBlob]);
+
+  // Auto-start listening when component mounts or after processing
+  useEffect(() => {
+    if (status === 'idle' && !isProcessing && !isSpeaking) {
+      // Small delay before starting to listen again
+      const timer = setTimeout(() => {
+        if (!isRecording && !isProcessing) {
+          startRecording();
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [status, isProcessing, isSpeaking, isRecording]);
 
   // Handle speaking state changes
   useEffect(() => {
@@ -121,8 +160,19 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       setStatus('speaking');
     } else if (status === 'speaking') {
       setStatus('idle');
+      
+      // Auto-start listening after Hazel finishes speaking if autoListenNext is true
+      if (autoListenNext && !isProcessing) {
+        // Small delay before starting to listen again
+        const timer = setTimeout(() => {
+          startRecording();
+          setAutoListenNext(false); // Reset after starting to listen
+        }, 500);
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isSpeaking, status]);
+  }, [isSpeaking, status, autoListenNext, isProcessing, startRecording]);
 
   // Welcome greeting when component mounts
   useEffect(() => {
@@ -146,6 +196,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           const base64 = (tts as any)?.audio;
           if (base64) {
             const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
+            // Enable auto-listen after Hazel finishes speaking
+            setAutoListenNext(true);
             await playAudio(audioBuffer, setIsSpeaking);
           }
           setStatus('idle');
@@ -162,6 +214,17 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       return () => clearTimeout(timer);
     }
   }, [hasWelcomed]);
+
+  // Auto-start microphone recording when Hazel finishes speaking
+  useEffect(() => {
+    if (!isSpeaking && autoListenNext && !isRecording && !isProcessing) {
+      setAutoListenNext(false);
+      // slight delay to avoid race with state updates
+      setTimeout(() => {
+        startRecording();
+      }, 200);
+    }
+  }, [isSpeaking, autoListenNext, isRecording, isProcessing, startRecording]);
 
   // No on-screen text per requirements
 
