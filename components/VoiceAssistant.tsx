@@ -6,10 +6,20 @@ import { sendToPerplexity } from '../api/perflexityApi';
 const systemPrompt = `You are a helpful AI assistant. Keep responses concise and conversational.`;
 
 const VoiceAssistant: React.FC = () => {
-  const { isRecording, audioBlob, startRecording, stopRecording, resetRecording } = useVoiceRecorder();
-  const [status, setStatus] = useState<'idle' | 'listening' | 'processing' | 'speaking' | 'error'>('idle');
+  const {
+    isRecording,
+    audioBlob,
+    startRecording,
+    stopRecording,
+    resetRecording,
+  } = useVoiceRecorder();
+  const [status, setStatus] = useState<
+    'idle' | 'listening' | 'processing' | 'speaking' | 'error'
+  >('idle');
   const [error, setError] = useState<string | null>(null);
-  const conversationContext = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const conversationContext = useRef<
+    Array<{ role: 'user' | 'assistant'; content: string }>
+  >([]);
   const speechSynthesis = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Handle speech synthesis
@@ -23,13 +33,15 @@ const VoiceAssistant: React.FC = () => {
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
-      utterance.voice = window.speechSynthesis.getVoices().find(v => v.lang === 'en-US') || null;
-      
+      utterance.voice =
+        window.speechSynthesis.getVoices().find((v) => v.lang === 'en-US') ||
+        null;
+
       utterance.onend = () => {
         setStatus('idle');
         resolve();
       };
-      
+
       utterance.onerror = (event) => {
         console.error('SpeechSynthesis error:', event);
         setError('Error generating speech');
@@ -46,16 +58,18 @@ const VoiceAssistant: React.FC = () => {
   // Process audio and get response
   const processAudio = async () => {
     if (!audioBlob) return;
-    
+
     setStatus('processing');
     setError(null);
 
     try {
       // 1. Convert speech to text
-      const file = new File([audioBlob], `speech-${Date.now()}.wav`, { type: 'audio/wav' });
+      const file = new File([audioBlob], `speech-${Date.now()}.wav`, {
+        type: 'audio/wav',
+      });
       const sttResponse = await uploadAudioFile(file);
       const userText = sttResponse?.text?.trim();
-      
+
       if (!userText) {
         throw new Error('Could not understand your voice. Please try again.');
       }
@@ -72,17 +86,16 @@ const VoiceAssistant: React.FC = () => {
       conversationContext.current = [
         ...conversationContext.current,
         { role: 'user', content: userText },
-        { role: 'assistant', content: reply }
+        { role: 'assistant', content: reply },
       ];
 
       // 3. Speak the response
       await speak(reply);
-      
     } catch (err) {
       console.error('Error in speech processing:', err);
       setStatus('error');
       setError(err instanceof Error ? err.message : 'An error occurred');
-      
+
       // Reset after showing error
       setTimeout(() => {
         setError(null);
@@ -154,17 +167,41 @@ const VoiceAssistant: React.FC = () => {
         >
           {status === 'processing' ? (
             <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div
+                className="w-3 h-3 bg-white rounded-full animate-bounce"
+                style={{ animationDelay: '0ms' }}
+              ></div>
+              <div
+                className="w-3 h-3 bg-white rounded-full animate-bounce"
+                style={{ animationDelay: '150ms' }}
+              ></div>
+              <div
+                className="w-3 h-3 bg-white rounded-full animate-bounce"
+                style={{ animationDelay: '300ms' }}
+              ></div>
             </div>
           ) : status === 'speaking' ? (
             <div className="flex items-center space-x-1">
-              <div className="w-1.5 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-1.5 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-              <div className="w-1.5 h-8 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-              <div className="w-1.5 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-              <div className="w-1.5 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
+              <div
+                className="w-1.5 h-4 bg-white rounded-full animate-audio-wave"
+                style={{ animationDelay: '0ms' }}
+              ></div>
+              <div
+                className="w-1.5 h-6 bg-white rounded-full animate-audio-wave"
+                style={{ animationDelay: '100ms' }}
+              ></div>
+              <div
+                className="w-1.5 h-8 bg-white rounded-full animate-audio-wave"
+                style={{ animationDelay: '200ms' }}
+              ></div>
+              <div
+                className="w-1.5 h-6 bg-white rounded-full animate-audio-wave"
+                style={{ animationDelay: '300ms' }}
+              ></div>
+              <div
+                className="w-1.5 h-4 bg-white rounded-full animate-audio-wave"
+                style={{ animationDelay: '400ms' }}
+              ></div>
             </div>
           ) : (
             <svg
@@ -186,9 +223,11 @@ const VoiceAssistant: React.FC = () => {
 
         {/* Status indicator */}
         <div className="mt-4 text-center">
-          <p className={`text-lg font-medium ${
-            status === 'error' ? 'text-red-600' : 'text-gray-700'
-          }`}>
+          <p
+            className={`text-lg font-medium ${
+              status === 'error' ? 'text-red-600' : 'text-gray-700'
+            }`}
+          >
             {error || getStatusText()}
           </p>
         </div>
@@ -201,9 +240,15 @@ const VoiceAssistant: React.FC = () => {
 
       <style jsx global>{`
         @keyframes audio-wave {
-          0% { height: 10px; }
-          50% { height: 24px; }
-          100% { height: 10px; }
+          0% {
+            height: 10px;
+          }
+          50% {
+            height: 24px;
+          }
+          100% {
+            height: 10px;
+          }
         }
         .animate-audio-wave {
           animation: audio-wave 1.5s ease-in-out infinite;
