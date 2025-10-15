@@ -19,7 +19,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   // Process audio and get response
   const processAudio = async () => {
     if (!audioBlob) return;
-    
+
     setIsProcessing(true);
     setStatus('processing');
     setError(null);
@@ -29,7 +29,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const file = new File([audioBlob], `speech-${Date.now()}.wav`, { type: 'audio/wav' });
       const sttResponse = await uploadAudioFile(file);
       const userText = sttResponse?.text?.trim();
-      
+
       if (!userText) {
         throw new Error('Could not understand your voice. Please try again.');
       }
@@ -81,7 +81,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       }
       const audioBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
       setStatus('speaking');
-      
+
       // Play the audio and set up auto-listen for after speech completes
       playAudio(audioBuffer, setIsSpeaking, () => {
         // This callback runs when audio finishes playing
@@ -92,15 +92,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           }, 500);
         }
       });
-      
+
       // Enable auto-listen for the next user input
       setAutoListenNext(true);
-      
+
     } catch (err) {
       console.error('Error in speech processing:', err);
       setStatus('error');
       setError(err instanceof Error ? err.message : 'An error occurred');
-      
+
       // Reset after showing error
       setTimeout(() => {
         setError(null);
@@ -149,7 +149,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           startRecording();
         }
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [status, isProcessing, isSpeaking, isRecording]);
@@ -160,7 +160,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       setStatus('speaking');
     } else if (status === 'speaking') {
       setStatus('idle');
-      
+
       // Auto-start listening after Hazel finishes speaking if autoListenNext is true
       if (autoListenNext && !isProcessing) {
         // Small delay before starting to listen again
@@ -168,7 +168,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           startRecording();
           setAutoListenNext(false); // Reset after starting to listen
         }, 500);
-        
+
         return () => clearTimeout(timer);
       }
     }
@@ -178,11 +178,11 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage = "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-      
+
       const playWelcome = async () => {
         try {
           setStatus('speaking');
-          
+
           // Add welcome message to conversation history
           const welcomeEntry = {
             id: `welcome-${Date.now()}`,
@@ -191,7 +191,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             timestamp: new Date()
           };
           setConversationHistory([welcomeEntry]);
-          
+
           const tts = await textToAudio(welcomeMessage);
           const base64 = (tts as any)?.audio;
           if (base64) {
@@ -264,16 +264,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] px-3 py-2 rounded-lg ${
-                      message.type === 'user'
-                        ? 'bg-[#0D9488] text-white'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
+                    className={`max-w-[85%] px-3 py-2 rounded-lg ${message.type === 'user'
+                      ? 'bg-[#0D9488] text-white'
+                      : 'bg-gray-100 text-gray-800'
+                      }`}
                   >
                     <div className="text-sm">{message.content}</div>
-                    <div className={`text-xs mt-1 ${
-                      message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
-                    }`}>
+                    <div className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
                       {message.timestamp.toLocaleTimeString()}
                     </div>
                   </div>
@@ -292,32 +290,60 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
         {/* Voice Interface - 40% */}
         <div className="w-[40%] flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="relative mb-8">
-          {/* Animated microphone icon */}
-          <div className={`relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
-            status === 'listening' 
-              ? 'bg-red-100 scale-110' 
+          <div className="relative mb-8">
+            {/* Animated microphone icon */}
+            <div className={`relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${status === 'listening'
+              ? 'bg-red-100 scale-110'
               : status === 'processing' || status === 'speaking'
-                ? 'bg-blue-50'
+                ? 'bg-green-50'
                 : 'bg-white'
-          } shadow-lg`}>
-            <div className={`p-6 rounded-full ${
-              status === 'listening' 
-                ? 'bg-red-500 text-white' 
-                : status === 'processing' 
-                  ? 'bg-blue-100 text-blue-600' 
+              } shadow-lg`}>
+              <div className={`p-6 rounded-full ${status === 'listening'
+                ? 'bg-red-500 text-white'
+                : status === 'processing'
+                  ? 'bg-blue-100 text-blue-600'
                   : status === 'speaking'
                     ? 'bg-green-100 text-green-600'
                     : 'bg-gray-100 text-gray-600'
-            }`}>
-              {status === 'listening' ? (
-                <div className="relative w-12 h-12">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                }`}>
+                {status === 'listening' ? (
+                  <div className="relative w-12 h-12">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-12 w-12 relative z-10"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                      />
+                    </svg>
                   </div>
+                ) : status === 'processing' ? (
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                ) : status === 'speaking' ? (
+                  <div className="flex items-center justify-center space-x-1">
+                    <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
+                    <div className="w-1 h-8 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
+                    <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
+                  </div>
+                ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 relative z-10"
+                    className="h-12 w-12"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -329,53 +355,22 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                       d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                     />
                   </svg>
-                </div>
-              ) : status === 'processing' ? (
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-              ) : status === 'speaking' ? (
-                <div className="flex items-center justify-center space-x-1">
-                  <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-                  <div className="w-1 h-8 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-                  <div className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-                  <div className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
-                </div>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                  />
-                </svg>
+                )}
+              </div>
+
+              {/* Animated rings when listening */}
+              {status === 'listening' && (
+                <>
+                  <div className="absolute inset-0 rounded-full border-4 border-red-200 opacity-70 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-red-100 opacity-70 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                </>
               )}
             </div>
-            
-            {/* Animated rings when listening */}
-            {status === 'listening' && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-red-200 opacity-70 animate-ping"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-red-100 opacity-70 animate-ping" style={{ animationDelay: '0.5s' }}></div>
-              </>
-            )}
-          </div>
-          
-          {/* No status text displayed */}
-        </div>
 
-        {/* Controls */}
-        <div className="p-6">
+          </div>
+
+          {/* Controls */}
+          {/* <div className="p-6">
           <div className="flex justify-center">
             <button
               onMouseDown={startRecording}
@@ -424,7 +419,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
               )}
             </button>
           </div>
-        </div>
+        </div> */}
         </div>
       </div>
 
