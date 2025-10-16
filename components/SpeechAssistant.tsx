@@ -82,23 +82,30 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         true // Enable web search for more accurate responses
       );
 
+      const cleanedReply = reply
+        .replace(/\[\d+\]/g, '') // Remove [1], [2], etc.
+        .replace(/[*_`~]/g, '') // Remove markdown symbols (*, _, `, ~)
+        .replace(/-{2,}/g, '-') // Replace multiple dashes with a single dash
+        .replace(/\s{2,}/g, ' ') // Remove extra spaces
+        .trim(); // Trim start and end spaces
+
       // Update conversation context with bot's response
       setConversationContext((prev) => [
         ...prev,
-        { type: 'bot' as const, content: reply },
+        { type: 'bot' as const, content: cleanedReply },
       ]);
 
       // Add bot response to conversation history
       const botEntry = {
         id: `bot-${Date.now()}`,
         type: 'bot' as const,
-        content: reply,
+        content: cleanedReply,
         timestamp: new Date(),
       };
       setConversationHistory((prev) => [...prev, botEntry]);
 
       // 3. Convert response to speech via existing API
-      const tts = await textToAudio(reply);
+      const tts = await textToAudio(cleanedReply);
       const base64 = (tts as any)?.audio;
       if (!base64) {
         throw new Error('TTS audio missing');
