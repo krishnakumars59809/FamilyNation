@@ -47,7 +47,8 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
       };
 
       // Setup WebAudio graph for silence detection
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 2048;
@@ -59,7 +60,9 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
 
       lastVoiceTimeRef.current = Date.now();
       // Ensure context is running
-      try { await audioContext.resume(); } catch {}
+      try {
+        await audioContext.resume();
+      } catch {}
 
       const dataArray = new Float32Array(analyser.fftSize);
       const monitor = () => {
@@ -76,7 +79,10 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
           lastVoiceTimeRef.current = Date.now();
         }
         // If silence for configured duration, stop recording
-        if (recordingRef.current && Date.now() - lastVoiceTimeRef.current > SILENCE_DURATION_MS) {
+        if (
+          recordingRef.current &&
+          Date.now() - lastVoiceTimeRef.current > SILENCE_DURATION_MS
+        ) {
           stopRecording();
           return;
         }
@@ -99,19 +105,19 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
       if (mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
-      
+
       // Stop the audio context
       if (audioContextRef.current) {
         audioContextRef.current.close().catch(console.error);
         audioContextRef.current = null;
       }
-      
+
       // Cancel any pending animation frames
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
-      
+
       // Reset states
       setIsRecording(false);
       recordingRef.current = false;
@@ -123,15 +129,21 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
       rafIdRef.current = null;
     }
     if (sourceRef.current) {
-      try { sourceRef.current.disconnect(); } catch {}
+      try {
+        sourceRef.current.disconnect();
+      } catch {}
       sourceRef.current = null;
     }
     if (analyserRef.current) {
-      try { analyserRef.current.disconnect(); } catch {}
+      try {
+        analyserRef.current.disconnect();
+      } catch {}
       analyserRef.current = null;
     }
     if (audioContextRef.current) {
-      try { audioContextRef.current.close(); } catch {}
+      try {
+        audioContextRef.current.close();
+      } catch {}
       audioContextRef.current = null;
     }
   };
