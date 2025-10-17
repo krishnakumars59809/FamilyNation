@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile } from '../api/hazelChatApi';
-import { sendToPerplexity } from '../api/perflexityApi';
+import { sendToGemini } from '../api/perflexityApi';
 
 const systemPrompt = `You are a helpful AI assistant. Keep responses concise and conversational.`;
 
@@ -60,8 +60,8 @@ const VoiceAssistant: React.FC = () => {
         throw new Error('Could not understand your voice. Please try again.');
       }
 
-      // 2. Get response from Perplexity AI
-      const reply = await sendToPerplexity(
+      // 2. Get response from Gemini AI
+      const reply = await sendToGemini(
         userText,
         systemPrompt,
         conversationContext.current,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
-import { sendToPerplexity } from '../api/perflexityApi';
+import { sendToGemini } from '../api/perflexityApi';
 import { systemPrompt } from './constants/systemPrompt';
 
 const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
@@ -50,8 +50,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       };
       setConversationHistory(prev => [...prev, userEntry]);
 
-      // 2. Get response from Perplexity AI
-      const reply = await sendToPerplexity(
+      // 2. Get response from Gemini AI
+      const reply = await sendToGemini(
         userText,
         systemPrompt,
         conversationContext,

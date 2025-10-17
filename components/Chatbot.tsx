@@ -6,7 +6,7 @@ import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 import { PredictionChart } from './PredictionChart';
 import ActionPlan from './ActionPlan';
-import { sendToPerplexity } from '../api/perflexityApi';
+import { sendToGemini } from '../api/perflexityApi';
 import SpeechAssistant from './SpeechAssistant';
 import { systemPrompt as sharedSystemPrompt } from './constants/systemPrompt';
 
@@ -94,7 +94,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   // Add this near the top of your component
   console.log(
     'API Key loaded:',
-    import.meta.env.VITE_PERPLEXITY_API_KEY ? 'Yes' : 'No'
+    import.meta.env.VITE_GEMINI_API_KEY ? 'Yes' : 'No'
   );
 
   const sendToGemini1 = async (
@@ -131,14 +131,14 @@ ${text}
     }
   };
 
-  const sendMessageToPerplexity = async (message: string) => {
+  const sendMessageToGemini = async (message: string) => {
     try {
       const contextForApi = conversationContext.map((m) => ({
         type: m.type,
         content: m.content,
       }));
 
-      const reply = await sendToPerplexity(
+      const reply = await sendToGemini(
         message,
         systemPrompt,
         contextForApi,
@@ -146,7 +146,7 @@ ${text}
       );
       return reply;
     } catch (error) {
-      console.error('Error sending to Perplexity:', error);
+      console.error('Error sending to Gemini:', error);
       throw error;
     }
   };
@@ -166,7 +166,7 @@ ${text}
     setIsGeminiThinking(true);
 
     try {
-      const reply = await sendMessageToPerplexity(input);
+      const reply = await sendMessageToGemini(input);
 
       const botMessage: ChatMessage = {
         id: `bot-${Date.now() + 1}`,
@@ -177,7 +177,7 @@ ${text}
       setGeminiThread((prev) => [...prev, botMessage]);
       setConversationContext((prev) => [...prev, botMessage]);
     } catch (err) {
-      console.error('Perplexity failed:', err);
+      console.error('Gemini failed:', err);
     } finally {
       setIsGeminiThinking(false);
     }
@@ -195,7 +195,7 @@ ${text}
     setIsGeminiThinking(true);
 
     try {
-      const reply = await sendMessageToPerplexity(message);
+      const reply = await sendMessageToGemini(message);
 
       const botMessage: ChatMessage = {
         id: `bot-${Date.now() + 1}`,
@@ -221,11 +221,11 @@ ${text}
     setLastGeminiRequest({ text, systemPrompt, useSearch });
     setGeminiError(null);
     try {
-      return await sendMessageToPerplexity(text);
+      return await sendMessageToGemini(text);
     } catch (err) {
       if (useSearch && retryOnSearchFail) {
         try {
-          return await sendMessageToPerplexity(text);
+          return await sendMessageToGemini(text);
         } catch (err2) {
           setGeminiError(
             'Unable to fetch suggestions. Please check connectivity or API key.'
