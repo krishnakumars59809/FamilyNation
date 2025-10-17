@@ -1,36 +1,29 @@
 export const sendToGemini = async (
   text: string,
   systemPrompt: string,
-  conversationContext: { type: 'user' | 'bot'; content: string }[] = [],
+  conversationContext: any[] = [],
   useSearch = false
 ): Promise<string> => {
   try {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    const contents = [
-      ...conversationContext.map((m) => ({
-        role: m.type === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }],
-      })),
-      { role: 'user', parts: [{ text }] },
-    ];
-
-    const payload = {
-      contents,
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
-      },
-      tools: useSearch ? [{ google_search: {} }] : []
+    const body = {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `${systemPrompt}\n\n${text}` }],
+        },
+      ],
     };
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    );
 
     if (!response.ok) {
       const err = await response.text();
@@ -39,8 +32,7 @@ export const sendToGemini = async (
     }
 
     const data = await response.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No reply received.';
-    return reply;
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     throw error;
