@@ -4,7 +4,7 @@ import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 import { sendToGemini } from '../api/perflexityApi';
 import { systemPrompt } from './constants/systemPrompt';
-
+// Added utility for base64 decoding
 const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const {
     isRecording,
