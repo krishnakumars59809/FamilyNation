@@ -35,14 +35,21 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }>
   >([]);
 
-  // Show recommendations button after 5 messages (2.5 exchanges)
+  // Show recommendations button after 5 messages and only if it hasn't been shown before
+  const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
+
   useEffect(() => {
-    if (conversationHistory.length >= 5 && !showRecommendations) {
+    if (conversationHistory.length >= 5 && !hasShownRecommendations) {
       setShowRecommendations(true);
     }
-  }, [conversationHistory.length, showRecommendations]);
+  }, [conversationHistory.length, hasShownRecommendations]);
 
   const handleRecommendationsClick = async () => {
+    // Hide the recommendations button immediately when clicked
+    setShowRecommendations(false);
+    // Mark recommendations as shown to prevent button from reappearing
+    setHasShownRecommendations(true);
+    
     try {
       // Show loading state
       const loadingMessage = {
@@ -72,7 +79,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         prompt,
         'You are a helpful assistant that provides relevant and high-quality media resources. ' +
         'Focus on educational content from reputable sources. Include a mix of videos and articles.',
-        conversationContext,
+        conversationContext,  
         true // Enable web search
       );
 
