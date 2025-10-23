@@ -324,8 +324,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage =
-        // "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-           "hello"
+         "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+          //  "hello"
       const playWelcome = async () => {
         try {
           setStatus('speaking');
