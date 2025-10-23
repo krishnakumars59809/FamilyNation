@@ -48,46 +48,81 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const loadingMessage = {
         id: `rec-loading-${Date.now()}`,
         type: 'bot' as const,
-        content: 'Fetching relevant resources...',
+        content: 'Finding helpful resources for you...',
         timestamp: new Date(),
       };
       setConversationHistory(prev => [...prev, loadingMessage]);
 
-      // Get the last few messages for context
-      const recentMessages = conversationHistory
+      // Get the conversation context
+      const conversationContext = conversationHistory
         .slice(-4)
         .map(m => ({
           type: m.type,
           content: typeof m.content === 'string' ? m.content : '[Content with links]'
         }));
 
-      // Call Perplexity API to get citations
+      // Create a focused prompt to get media resources
+      const prompt = `Based on our conversation, please provide 2-4 high-quality, relevant media links 
+        (videos, articles, or blogs) that could be helpful. Format the response as markdown links:
+        - [Title 1](https://example1.com) - Brief description
+        - [Title 2](https://example2.com) - Brief description`;
+
+      // Call Perplexity API with web search enabled
       const response = await sendToPerplexity(
-        'Please provide some relevant resources or citations based on our conversation.',
-        'You are a helpful assistant that provides useful resources and citations.',
-        recentMessages,
+        prompt,
+        'You are a helpful assistant that provides relevant and high-quality media resources. ' +
+        'Focus on educational content from reputable sources. Include a mix of videos and articles.',
+        conversationContext,
         true // Enable web search
       );
 
       // Remove loading message
       setConversationHistory(prev => prev.filter(m => m.id !== loadingMessage.id));
 
-      // Create the recommendation message with citations from the API
+      // Process and format the response
+      const formattedContent = (
+        <div className="space-y-3">
+          <p className="font-medium text-gray-800">Here are some resources you might find helpful:</p>
+          <div className="space-y-2">
+            {response.split('\n')
+              .filter(line => line.trim().startsWith('- ['))
+              .map((line, i) => {
+                // Extract link and text using regex
+                const match = line.match(/\[(.*?)\]\((.*?)\)(?: - (.*))?/);
+                if (!match) return null;
+                
+                const [, title, url, description] = match;
+                return (
+                  <div key={i} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline font-medium flex items-start"
+                    >
+                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      <span>
+                        {title}
+                        {description && (
+                          <span className="block text-sm text-gray-600 font-normal mt-0.5">
+                            {description}
+                          </span>
+                        )}
+                      </span>
+                    </a>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      );
+
       const recommendationMessage = {
         id: `rec-${Date.now()}`,
         type: 'bot' as const,
-        content: (
-          <div className="space-y-2">
-            <p className="font-medium text-gray-800">Here are some relevant resources:</p>
-            <div className="prose prose-sm max-w-none">
-              {response.split('\n').map((line, i) => (
-                <p key={i} className="text-sm text-gray-700">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
-        ),
+        content: formattedContent,
         timestamp: new Date(),
       };
       
@@ -97,7 +132,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const errorMessage = {
         id: `rec-error-${Date.now()}`,
         type: 'bot' as const,
-        content: 'Sorry, I had trouble fetching resources. Please try again later.',
+        content: 'Sorry, I had trouble finding resources. You can try asking me a specific question about what you\'re looking for!',
         timestamp: new Date(),
       };
       setConversationHistory(prev => [...prev, errorMessage]);
