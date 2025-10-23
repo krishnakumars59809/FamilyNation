@@ -51,3 +51,5 @@ coverage/
 
 # Jest cache
 jest-cache/
+delete.py
+.gitignore
