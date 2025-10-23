@@ -23,14 +23,86 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     Array<{ type: 'user' | 'bot'; content: string }>
   >([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  type MessageContent = string | React.ReactNode;
+
   const [conversationHistory, setConversationHistory] = useState<
     Array<{
       id: string;
       type: 'user' | 'bot';
-      content: string;
+      content: MessageContent;
       timestamp: Date;
     }>
   >([]);
+
+  // Show recommendations button after 5 messages (2.5 exchanges)
+  useEffect(() => {
+    if (conversationHistory.length >= 5 && !showRecommendations) {
+      setShowRecommendations(true);
+    }
+  }, [conversationHistory.length, showRecommendations]);
+
+  const handleRecommendationsClick = async () => {
+    try {
+      // Show loading state
+      const loadingMessage = {
+        id: `rec-loading-${Date.now()}`,
+        type: 'bot' as const,
+        content: 'Fetching relevant resources...',
+        timestamp: new Date(),
+      };
+      setConversationHistory(prev => [...prev, loadingMessage]);
+
+      // Get the last few messages for context
+      const recentMessages = conversationHistory
+        .slice(-4)
+        .map(m => ({
+          type: m.type,
+          content: typeof m.content === 'string' ? m.content : '[Content with links]'
+        }));
+
+      // Call Perplexity API to get citations
+      const response = await sendToPerplexity(
+        'Please provide some relevant resources or citations based on our conversation.',
+        'You are a helpful assistant that provides useful resources and citations.',
+        recentMessages,
+        true // Enable web search
+      );
+
+      // Remove loading message
+      setConversationHistory(prev => prev.filter(m => m.id !== loadingMessage.id));
+
+      // Create the recommendation message with citations from the API
+      const recommendationMessage = {
+        id: `rec-${Date.now()}`,
+        type: 'bot' as const,
+        content: (
+          <div className="space-y-2">
+            <p className="font-medium text-gray-800">Here are some relevant resources:</p>
+            <div className="prose prose-sm max-w-none">
+              {response.split('\n').map((line, i) => (
+                <p key={i} className="text-sm text-gray-700">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+        ),
+        timestamp: new Date(),
+      };
+      
+      setConversationHistory(prev => [...prev, recommendationMessage]);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      const errorMessage = {
+        id: `rec-error-${Date.now()}`,
+        type: 'bot' as const,
+        content: 'Sorry, I had trouble fetching resources. Please try again later.',
+        timestamp: new Date(),
+      };
+      setConversationHistory(prev => [...prev, errorMessage]);
+    }
+  };
   const [autoListenNext, setAutoListenNext] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -210,8 +282,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage =
-        "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-
+        // "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+           "hello"
       const playWelcome = async () => {
         try {
           setStatus('speaking');
@@ -335,6 +407,31 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   </div>
                 </div>
               ))}
+              
+              {showRecommendations && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={handleRecommendationsClick}
+                    className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                  >
+                    <svg 
+                      className="w-5 h-5 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M13 10V3L4 14h7v7l9-11h-7z" 
+                      />
+                    </svg>
+                    Show Recommendations
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
