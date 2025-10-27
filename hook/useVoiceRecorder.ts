@@ -26,18 +26,6 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
 
   const startRecording = async () => {
     try {
-      // ✅ Unlock iOS AudioContext first
-      if (window.AudioContext || (window as any).webkitAudioContext) {
-        const testCtx = new (window.AudioContext ||
-          (window as any).webkitAudioContext)();
-        if (testCtx.state === 'suspended') {
-          await testCtx.resume(); // <-- This must be in user click/tap event
-          console.log('🔓 iOS AudioContext unlocked');
-        }
-        // Immediately close this temporary one; just used for unlock
-        testCtx.close();
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
 

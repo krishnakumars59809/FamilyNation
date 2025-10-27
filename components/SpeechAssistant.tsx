@@ -38,6 +38,30 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
 
+// audioUnlock.ts
+  let audioUnlocked = false;
+
+  const unlockIOSAudio = async () => {
+  if (audioUnlocked) return;
+
+  try {
+    const AudioCtx =
+      window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      await ctx.resume(); // ✅ must happen during a user gesture (tap)
+    }
+    ctx.close();
+    audioUnlocked = true;
+    console.log("🔓 iOS audio unlocked");
+  } catch (err) {
+    console.warn("Audio unlock failed:", err);
+  }
+};
+
+
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
       setShowRecommendations(true);
@@ -254,6 +278,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           // Small delay before starting to listen again
           setTimeout(() => {
             startRecording();
+            unlockIOSAudio()
           }, 500);
         }
       });
@@ -311,6 +336,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const timer = setTimeout(() => {
         if (!isRecording && !isProcessing) {
           startRecording();
+          unlockIOSAudio();
         }
       }, 1000);
 
@@ -330,6 +356,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         // Small delay before starting to listen again
         const timer = setTimeout(() => {
           startRecording();
+          unlockIOSAudio();
           setAutoListenNext(false); // Reset after starting to listen
         }, 500);
 
@@ -389,6 +416,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       // slight delay to avoid race with state updates
       setTimeout(() => {
         startRecording();
+        unlockIOSAudio();
       }, 200);
     }
   }, [isSpeaking, autoListenNext, isRecording, isProcessing, startRecording]);
