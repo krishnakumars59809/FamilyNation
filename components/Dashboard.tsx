@@ -87,6 +87,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     fetchLocation();
   }, []);
 
+  const handleChatbotOpen = async () => {
+  setChatbotOpen(true);
+  await unlockIOSAudio();
+};
+
   return (
     // <div className="relative min-h-screen">
     //   {/* Background Image */}
@@ -243,7 +248,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 // onClick={() =>
                 //   !user ? navigate('/login') : setChatbotOpen(true)
                 // }
-                onClick={() => {setChatbotOpen(true) ; unlockIOSAudio()}}
+                onClick={handleChatbotOpen}
                 className="border border-white hover:bg-red-500 text-white py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-lg flex items-center justify-center"
               >
                 💬 Need Help Now ? Talk to Hazel !
