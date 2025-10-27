@@ -276,9 +276,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         // This callback runs when audio finishes playing
         if (autoListenNext) {
           // Small delay before starting to listen again
-          setTimeout(() => {
+          setTimeout(async () => {
             startRecording();
-            unlockIOSAudio()
+            await unlockIOSAudio()
           }, 500);
         }
       });
@@ -333,10 +333,10 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (status === 'idle' && !isProcessing && !isSpeaking) {
       // Small delay before starting to listen again
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         if (!isRecording && !isProcessing) {
           startRecording();
-          unlockIOSAudio();
+          await unlockIOSAudio();
         }
       }, 1000);
 
@@ -354,9 +354,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       // Auto-start listening after Hazel finishes speaking if autoListenNext is true
       if (autoListenNext && !isProcessing) {
         // Small delay before starting to listen again
-        const timer = setTimeout(() => {
+        const timer = setTimeout(async () => {
           startRecording();
-          unlockIOSAudio();
+          await unlockIOSAudio();
           setAutoListenNext(false); // Reset after starting to listen
         }, 500);
 
@@ -414,9 +414,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     if (!isSpeaking && autoListenNext && !isRecording && !isProcessing) {
       setAutoListenNext(false);
       // slight delay to avoid race with state updates
-      setTimeout(() => {
+      setTimeout(async () => {
         startRecording();
-        unlockIOSAudio();
+        await unlockIOSAudio();
       }, 200);
     }
   }, [isSpeaking, autoListenNext, isRecording, isProcessing, startRecording]);
