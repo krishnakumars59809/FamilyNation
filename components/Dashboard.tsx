@@ -38,6 +38,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+// audioUnlock.ts
+  let audioUnlocked = false;
+
+  const unlockIOSAudio = async () => {
+  if (audioUnlocked) return;
+
+  try {
+    const AudioCtx =
+      window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      await ctx.resume(); // ✅ must happen during a user gesture (tap)
+    }
+    ctx.close();
+    audioUnlocked = true;
+    console.log("🔓 iOS audio unlocked");
+  } catch (err) {
+    console.warn("Audio unlock failed:", err);
+  }
+};
 
   const fetchLocation = async () => {
     try {
@@ -221,7 +243,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 // onClick={() =>
                 //   !user ? navigate('/login') : setChatbotOpen(true)
                 // }
-                onClick={() => setChatbotOpen(true)}
+                onClick={() => {setChatbotOpen(true) ; unlockIOSAudio()}}
                 className="border border-white hover:bg-red-500 text-white py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-lg flex items-center justify-center"
               >
                 💬 Need Help Now ? Talk to Hazel !
