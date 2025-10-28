@@ -27,6 +27,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [showIOSPopup, setShowIOSPopup] = useState(false);
   type MessageContent = string | React.ReactNode;
 
   const [conversationHistory, setConversationHistory] = useState<
@@ -37,6 +38,16 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       timestamp: Date;
     }>
   >([]);
+
+  // Check if OS is iOS, macOS, Linux, etc. (non-Windows/Android)
+  useEffect(() => {
+    if (operatingSystem !== 'Detecting OS...' && 
+        operatingSystem !== 'Unknown OS' && 
+        operatingSystem !== 'Windows' && 
+        operatingSystem !== 'Android') {
+      setShowIOSPopup(true);
+    }
+  }, [operatingSystem]);
 
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
@@ -391,6 +402,30 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // No on-screen text per requirements
 
+  // If not Windows or Android, show simple iOS popup
+  if (showIOSPopup) {
+    return (
+      <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100 items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md text-center">
+          <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <MonitorIcon className="text-white" size={36} />
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800">Hello {operatingSystem}</h2>
+          <p className="text-gray-600 mb-6">
+            We've detected you're using {operatingSystem}
+          </p>
+          <button 
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+            onClick={onBack}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Default UI for Windows and Android
   return (
     <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">

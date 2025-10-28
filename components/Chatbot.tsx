@@ -49,6 +49,7 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [showProfessionals, setShowProfessionals] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [showIOSPopup, setShowIOSPopup] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [conversationContext, setConversationContext] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
@@ -79,6 +80,16 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const handleShowProfessionals = () => {
     setShowProfessionals(true);
   };
+
+  // Check if OS is iOS, macOS, Linux, etc. (non-Windows/Android)
+  useEffect(() => {
+    if (operatingSystem !== 'Detecting OS...' && 
+        operatingSystem !== 'Unknown OS' && 
+        operatingSystem !== 'Windows' && 
+        operatingSystem !== 'Android') {
+      setShowIOSPopup(true);
+    }
+  }, [operatingSystem]);
 
   // Detect OS on component mount
   useEffect(() => {
@@ -517,7 +528,30 @@ ${text}
     return <SpeechAssistant onBack={onClose} />;
   }
 
-  // Main Chat Interface
+  // If not Windows or Android, show simple iOS popup
+  if (showIOSPopup) {
+    return (
+      <div className="flex flex-col h-full w-full bg-white rounded-xl shadow-lg overflow-hidden items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md text-center">
+          <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <MonitorIcon className="text-white" size={36} />
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800">Hello {operatingSystem}</h2>
+          <p className="text-gray-600 mb-6">
+            We've detected you're using {operatingSystem}
+          </p>
+          <button 
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Chat Interface for Windows and Android
   return (
     <div className="flex flex-col h-full w-full  bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header with Hazel branding */}
