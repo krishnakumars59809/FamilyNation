@@ -44,6 +44,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const isIOS = operatingSystem.toLowerCase().includes('ios');
       console.log("isIOS:",isIOS)
 
+
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
       setShowRecommendations(true);
@@ -270,7 +271,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         // This callback runs when audio finishes playing
         if (autoListenNext) {
           // Small delay before starting to listen again
-          setTimeout(() => {
+          setTimeout(async () => {
             startRecording();
           }, 500);
         }
@@ -306,7 +307,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         setStatus('idle');
       }
     }
-  }, [audioBlob]);
+  }, [audioBlob, conversationHistory]);
 
   // Handle recording state changes
   useEffect(() => {
@@ -328,7 +329,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     if (isIOS) return;
 
     if (status === 'idle' && !isProcessing && !isSpeaking) {
+
       const timer = setTimeout(() => {
+
         if (!isRecording && !isProcessing) {
           startRecording();
         }
@@ -347,7 +350,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       // Auto-start listening after Hazel finishes speaking if autoListenNext is true
       if (autoListenNext && !isProcessing) {
         // Small delay before starting to listen again
-        const timer = setTimeout(() => {
+        const timer = setTimeout(async () => {
           startRecording();
           setAutoListenNext(false); // Reset after starting to listen
         }, 500);
@@ -412,7 +415,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     ) {
       setAutoListenNext(false);
       // slight delay to avoid race with state updates
-      setTimeout(() => {
+      setTimeout(async () => {
         startRecording();
       }, 200);
     }
