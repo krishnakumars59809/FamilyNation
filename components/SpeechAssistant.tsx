@@ -26,7 +26,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   >([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [operatingSystem, setOperatingSystem] =
+    useState<string>('Detecting OS...');
   type MessageContent = string | React.ReactNode;
 
   const [conversationHistory, setConversationHistory] = useState<
@@ -40,7 +41,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
-
+  const isIOS = operatingSystem.toLowerCase().includes('ios');
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
       setShowRecommendations(true);
@@ -63,7 +64,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     setShowRecommendations(false);
     // Mark recommendations as shown to prevent button from reappearing
     setHasShownRecommendations(true);
-    
+
     try {
       // Show loading state
       const loadingMessage = {
@@ -72,15 +73,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: 'Finding helpful resources for you...',
         timestamp: new Date(),
       };
-      setConversationHistory(prev => [...prev, loadingMessage]);
+      setConversationHistory((prev) => [...prev, loadingMessage]);
 
       // Get the conversation context
-      const conversationContext = conversationHistory
-        .slice(-4)
-        .map(m => ({
-          type: m.type,
-          content: typeof m.content === 'string' ? m.content : '[Content with links]'
-        }));
+      const conversationContext = conversationHistory.slice(-4).map((m) => ({
+        type: m.type,
+        content:
+          typeof m.content === 'string' ? m.content : '[Content with links]',
+      }));
 
       // Create a focused prompt to get media resources
       const prompt = `Based on our conversation, please provide 2-4 high-quality, relevant media links 
@@ -92,37 +92,55 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const response = await sendToPerplexity(
         prompt,
         'You are a helpful assistant that provides relevant and high-quality media resources. ' +
-        'Focus on educational content from reputable sources. Include a mix of videos and articles.',
-        conversationContext,  
+          'Focus on educational content from reputable sources. Include a mix of videos and articles.',
+        conversationContext,
         true // Enable web search
       );
 
       // Remove loading message
-      setConversationHistory(prev => prev.filter(m => m.id !== loadingMessage.id));
+      setConversationHistory((prev) =>
+        prev.filter((m) => m.id !== loadingMessage.id)
+      );
 
       // Process and format the response
       const formattedContent = (
         <div className="space-y-3">
-          <p className="font-medium text-gray-800">Here are some resources you might find helpful:</p>
+          <p className="font-medium text-gray-800">
+            Here are some resources you might find helpful:
+          </p>
           <div className="space-y-2">
-            {response.split('\n')
-              .filter(line => line.trim().startsWith('- ['))
+            {response
+              .split('\n')
+              .filter((line) => line.trim().startsWith('- ['))
               .map((line, i) => {
                 // Extract link and text using regex
                 const match = line.match(/\[(.*?)\]\((.*?)\)(?: - (.*))?/);
                 if (!match) return null;
-                
+
                 const [, title, url, description] = match;
                 return (
-                  <div key={i} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <a 
-                      href={url} 
-                      target="_blank" 
+                  <div
+                    key={i}
+                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <a
+                      href={url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium flex items-start"
                     >
-                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      <svg
+                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
                       </svg>
                       <span>
                         {title}
@@ -146,17 +164,18 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: formattedContent,
         timestamp: new Date(),
       };
-      
-      setConversationHistory(prev => [...prev, recommendationMessage]);
+
+      setConversationHistory((prev) => [...prev, recommendationMessage]);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
       const errorMessage = {
         id: `rec-error-${Date.now()}`,
         type: 'bot' as const,
-        content: 'Sorry, I had trouble finding resources. You can try asking me a specific question about what you\'re looking for!',
+        content:
+          "Sorry, I had trouble finding resources. You can try asking me a specific question about what you're looking for!",
         timestamp: new Date(),
       };
-      setConversationHistory(prev => [...prev, errorMessage]);
+      setConversationHistory((prev) => [...prev, errorMessage]);
     }
   };
   const [autoListenNext, setAutoListenNext] = useState(false);
@@ -302,17 +321,18 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Auto-start listening when component mounts or after processing
   useEffect(() => {
+    // Skip auto-listen for iOS devices (must start via tap)
+    if (isIOS) return;
+
     if (status === 'idle' && !isProcessing && !isSpeaking) {
-      // Small delay before starting to listen again
       const timer = setTimeout(() => {
         if (!isRecording && !isProcessing) {
           startRecording();
         }
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [status, isProcessing, isSpeaking, isRecording]);
+  }, [status, isProcessing, isSpeaking, isRecording, isIOS]);
 
   // Handle speaking state changes
   useEffect(() => {
@@ -338,8 +358,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage =
-         "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-          //  "hello"
+        "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+      //  "hello"
       const playWelcome = async () => {
         try {
           setStatus('speaking');
@@ -380,7 +400,13 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Auto-start microphone recording when Hazel finishes speaking
   useEffect(() => {
-    if (!isSpeaking && autoListenNext && !isRecording && !isProcessing) {
+    if (
+      !isSpeaking &&
+      autoListenNext &&
+      !isRecording &&
+      !isProcessing &&
+      !isIOS
+    ) {
       setAutoListenNext(false);
       // slight delay to avoid race with state updates
       setTimeout(() => {
@@ -403,41 +429,39 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             </div>
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
           </div>
-        <div>
-          <span className="font-bold text-lg">Hazel</span>
-          <p className="text-xs opacity-90">Voice Assistant</p>
+          <div>
+            <span className="font-bold text-lg">Hazel</span>
+            <p className="text-xs opacity-90">Voice Assistant</p>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center space-x-3">
-        <button
-          className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors"
-        >
-          <MonitorIcon size={16} />
-          <span>{operatingSystem}</span>
-        </button>
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center"
-            aria-label="Back"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+        <div className="flex items-center space-x-3">
+          <button className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors">
+            <MonitorIcon size={16} />
+            <span>{operatingSystem}</span>
           </button>
-        )}
-      </div>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center"
+              aria-label="Back"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Horizontal Layout: 60% History + 40% Voice UI */}
@@ -471,25 +495,25 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   </div>
                 </div>
               ))}
-              
+
               {showRecommendations && (
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleRecommendationsClick}
                     className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
                   >
-                    <svg 
-                      className="w-5 h-5 mr-2" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24" 
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M13 10V3L4 14h7v7l9-11h-7z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                     Show Recommendations
@@ -512,6 +536,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         <div className="h-[10vh] md:h-full w-full md:w-[40%] flex flex-col items-center justify-end md:justify-center p-6 text-center bg-gradient-to-b from-gray-50 to-gray-100">
           <div className="relative mb-0 md:mb-8">
             {/* Animated microphone icon */}
+            {/* Mic button container */}
             <div
               className={`relative top-16 md:top-0 w-14 h-14 md:w-48 md:h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
                 status === 'listening'
@@ -519,7 +544,18 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   : status === 'processing' || status === 'speaking'
                     ? 'bg-green-50'
                     : 'bg-white'
-              } shadow-lg`}
+              } shadow-lg ${
+                isIOS ? 'cursor-pointer hover:scale-105 active:scale-95' : ''
+              }`}
+              onClick={() => {
+                if (!isIOS) return; // only clickable on iOS
+                if (status === 'processing' || status === 'speaking') return; // prevent mid-process tap
+                if (isRecording) {
+                  stopRecording();
+                } else {
+                  startRecording();
+                }
+              }}
             >
               <div
                 className={`p-6 rounded-full ${
@@ -620,58 +656,6 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
               )}
             </div>
           </div>
-
-          {/* Controls */}
-          {/* <div className="p-6">
-          <div className="flex justify-center">
-            <button
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              onMouseLeave={isRecording ? stopRecording : undefined}
-              disabled={isProcessing || isSpeaking}
-              className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
-                status === 'listening'
-                  ? 'bg-red-600 hover:bg-red-700 scale-110'
-                  : status === 'processing' || status === 'speaking'
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-[#0D9488] hover:bg-[#0f766e]'
-              }`}
-            >
-              {status === 'processing' ? (
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-              ) : status === 'speaking' ? (
-                <div className="flex items-center space-x-1">
-                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '100ms' }}></div>
-                  <div className="w-1 h-6 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '200ms' }}></div>
-                  <div className="w-1 h-4 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '300ms' }}></div>
-                  <div className="w-1 h-2 bg-white rounded-full animate-audio-wave" style={{ animationDelay: '400ms' }}></div>
-                </div>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div> */}
         </div>
       </div>
 

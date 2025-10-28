@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/chatContext';
-import { CloudCog, Info, Link, MonitorIcon, Volume1, Volume2, X } from 'lucide-react';
+import {
+  CloudCog,
+  Info,
+  Link,
+  MonitorIcon,
+  Volume1,
+  Volume2,
+  X,
+} from 'lucide-react';
 import { detectOS } from '../utils/detectOS';
 import { ChatInput } from './chat/ChatInput';
 import { geminiChat, textToAudio, uploadAudioFile } from '../api/hazelChatApi';
@@ -48,7 +56,8 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [showPrediction, setShowPrediction] = useState(false);
   const [showProfessionals, setShowProfessionals] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [operatingSystem, setOperatingSystem] =
+    useState<string>('Detecting OS...');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [conversationContext, setConversationContext] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
@@ -535,9 +544,7 @@ ${text}
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button
-            className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors"
-          >
+          <button className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors">
             <MonitorIcon size={16} />
             <span>{operatingSystem}</span>
           </button>
