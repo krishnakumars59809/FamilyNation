@@ -42,6 +42,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
   const isIOS = operatingSystem.toLowerCase().includes('ios');
+      console.log("isIOS:",isIOS)
+
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
       setShowRecommendations(true);
@@ -52,6 +54,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     try {
       const detectedOS = detectOS();
+      console.log("detectedOS:",detectedOS)
       setOperatingSystem(detectedOS);
     } catch (error) {
       console.error('Error detecting OS:', error);

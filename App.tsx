@@ -148,13 +148,9 @@ const App = () => {
       {isChatbotOpen && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
           <div className="relative w-full max-w-6xl h-[100vh] bg-white lg:rounded-xl shadow-lg overflow-hidden">
-            {operatingSystem === 'iOS' || operatingSystem === 'macOS' ? (
-              <AppleDeviceChatInterface onBack={() => setChatbotOpen(false)} />
-            ) : (
-              <ChatProvider
+           <ChatProvider
                 children={<Chatbot onClose={() => setChatbotOpen(false)} />}
               />
-            )}
           </div>
         </div>
       )}
