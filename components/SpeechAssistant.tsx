@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { detectOS } from '../utils/detectOS';
+import { MonitorIcon } from 'lucide-react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
@@ -24,6 +26,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   >([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
   type MessageContent = string | React.ReactNode;
 
   const [conversationHistory, setConversationHistory] = useState<
@@ -43,6 +46,17 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       setShowRecommendations(true);
     }
   }, [conversationHistory.length, hasShownRecommendations]);
+
+  // Detect OS on component mount
+  useEffect(() => {
+    try {
+      const detectedOS = detectOS();
+      setOperatingSystem(detectedOS);
+    } catch (error) {
+      console.error('Error detecting OS:', error);
+      setOperatingSystem('Unknown OS');
+    }
+  }, []);
 
   const handleRecommendationsClick = async () => {
     // Hide the recommendations button immediately when clicked
@@ -389,11 +403,18 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             </div>
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
           </div>
-          <div>
-            <span className="font-bold text-lg">Hazel</span>
-            <p className="text-xs opacity-90">Voice Assistant</p>
-          </div>
+        <div>
+          <span className="font-bold text-lg">Hazel</span>
+          <p className="text-xs opacity-90">Voice Assistant</p>
         </div>
+      </div>
+      <div className="flex items-center space-x-3">
+        <button
+          className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors"
+        >
+          <MonitorIcon size={16} />
+          <span>{operatingSystem}</span>
+        </button>
         {onBack && (
           <button
             onClick={onBack}
@@ -416,6 +437,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             </svg>
           </button>
         )}
+      </div>
       </div>
 
       {/* Horizontal Layout: 60% History + 40% Voice UI */}
