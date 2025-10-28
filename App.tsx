@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import ActionPlan from './components/ActionPlan';
@@ -5,6 +6,8 @@ import { PlaceholderView } from './components/PlaceholderView';
 import { Dashboard } from './components/Dashboard';
 import { ChatProvider } from './context/chatContext';
 import { Chatbot } from './components/Chatbot';
+import AppleDeviceChatInterface from './components/AppleDeviceChatInterface';
+import { detectOS } from './utils/detectOS';
 import HappyFamilyImg from './assets/images/happy-family.png';
 import './index.css';
 import 'leaflet/dist/leaflet.css';
@@ -24,9 +27,19 @@ const App = () => {
   const [isChatbotOpen, setChatbotOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar hidden by default
   const [isHidden, setHidden] = useState(false); // Eye overlay hidden by default
+  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
 
   useEffect(() => {
     setHidden(true);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const os = detectOS();
+      setOperatingSystem(os);
+    } catch {
+      setOperatingSystem('Unknown OS');
+    }
   }, []);
 
   return (
@@ -133,13 +146,13 @@ const App = () => {
 
       {/* Chat popup */}
       {isChatbotOpen && (
-        <ChatProvider>
-          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-            <div className="relative w-full max-w-6xl h-[100vh] bg-white lg:rounded-xl shadow-lg overflow-hidden">
-              <Chatbot onClose={() => setChatbotOpen(false)} />
-            </div>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="relative w-full max-w-6xl h-[100vh] bg-white lg:rounded-xl shadow-lg overflow-hidden">
+           <ChatProvider
+                children={<Chatbot onClose={() => setChatbotOpen(false)} />}
+              />
           </div>
-        </ChatProvider>
+        </div>
       )}
     </div>
   );

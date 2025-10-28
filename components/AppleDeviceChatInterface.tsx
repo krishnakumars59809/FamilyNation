@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { detectOS } from '../utils/detectOS';
-import { MonitorIcon } from 'lucide-react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
 import { sendToPerplexity } from '../api/perflexityApi';
 import { systemPrompt } from './constants/systemPrompt';
 
-const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
+const AppleDeviceChatInterface: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const {
     isRecording,
     audioBlob,
@@ -26,8 +25,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   >([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [operatingSystem, setOperatingSystem] =
-    useState<string>('Detecting OS...');
+  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
   type MessageContent = string | React.ReactNode;
 
   const [conversationHistory, setConversationHistory] = useState<
@@ -41,9 +39,6 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
-  const isIOS = operatingSystem.toLowerCase().includes('ios');
-      console.log("isIOS:",isIOS)
-
 
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
@@ -55,8 +50,12 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     try {
       const detectedOS = detectOS();
-      console.log("detectedOS:",detectedOS)
       setOperatingSystem(detectedOS);
+      
+      // Optional: Redirect to standard interface if not iOS or macOS
+      if (detectedOS !== 'iOS' && detectedOS !== 'macOS') {
+        console.warn('AppleDeviceChatInterface is optimized for iOS and macOS. Current OS:', detectedOS);
+      }
     } catch (error) {
       console.error('Error detecting OS:', error);
       setOperatingSystem('Unknown OS');
@@ -68,7 +67,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     setShowRecommendations(false);
     // Mark recommendations as shown to prevent button from reappearing
     setHasShownRecommendations(true);
-
+    
     try {
       // Show loading state
       const loadingMessage = {
@@ -77,14 +76,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: 'Finding helpful resources for you...',
         timestamp: new Date(),
       };
-      setConversationHistory((prev) => [...prev, loadingMessage]);
+      setConversationHistory(prev => [...prev, loadingMessage]);
 
       // Get the conversation context
-      const conversationContext = conversationHistory.slice(-4).map((m) => ({
-        type: m.type,
-        content:
-          typeof m.content === 'string' ? m.content : '[Content with links]',
-      }));
+      const conversationContext = conversationHistory
+        .slice(-4)
+        .map(m => ({
+          type: m.type,
+          content: typeof m.content === 'string' ? m.content : '[Content with links]'
+        }));
 
       // Create a focused prompt to get media resources
       const prompt = `Based on our conversation, please provide 2-4 high-quality, relevant media links 
@@ -96,55 +96,37 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const response = await sendToPerplexity(
         prompt,
         'You are a helpful assistant that provides relevant and high-quality media resources. ' +
-          'Focus on educational content from reputable sources. Include a mix of videos and articles.',
-        conversationContext,
+        'Focus on educational content from reputable sources. Include a mix of videos and articles.',
+        conversationContext,  
         true // Enable web search
       );
 
       // Remove loading message
-      setConversationHistory((prev) =>
-        prev.filter((m) => m.id !== loadingMessage.id)
-      );
+      setConversationHistory(prev => prev.filter(m => m.id !== loadingMessage.id));
 
       // Process and format the response
       const formattedContent = (
         <div className="space-y-3">
-          <p className="font-medium text-gray-800">
-            Here are some resources you might find helpful:
-          </p>
+          <p className="font-medium text-gray-800">Here are some resources you might find helpful:</p>
           <div className="space-y-2">
-            {response
-              .split('\n')
-              .filter((line) => line.trim().startsWith('- ['))
+            {response.split('\n')
+              .filter(line => line.trim().startsWith('- ['))
               .map((line, i) => {
                 // Extract link and text using regex
                 const match = line.match(/\[(.*?)\]\((.*?)\)(?: - (.*))?/);
                 if (!match) return null;
-
+                
                 const [, title, url, description] = match;
                 return (
-                  <div
-                    key={i}
-                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <a
-                      href={url}
-                      target="_blank"
+                  <div key={i} className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                    <a 
+                      href={url} 
+                      target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium flex items-start"
                     >
-                      <svg
-                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
+                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                       <span>
                         {title}
@@ -168,20 +150,20 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: formattedContent,
         timestamp: new Date(),
       };
-
-      setConversationHistory((prev) => [...prev, recommendationMessage]);
+      
+      setConversationHistory(prev => [...prev, recommendationMessage]);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
       const errorMessage = {
         id: `rec-error-${Date.now()}`,
         type: 'bot' as const,
-        content:
-          "Sorry, I had trouble finding resources. You can try asking me a specific question about what you're looking for!",
+        content: 'Sorry, I had trouble finding resources. You can try asking me a specific question about what you\'re looking for!',
         timestamp: new Date(),
       };
-      setConversationHistory((prev) => [...prev, errorMessage]);
+      setConversationHistory(prev => [...prev, errorMessage]);
     }
   };
+  
   const [autoListenNext, setAutoListenNext] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -271,7 +253,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         // This callback runs when audio finishes playing
         if (autoListenNext) {
           // Small delay before starting to listen again
-          setTimeout(async () => {
+          setTimeout(() => {
             startRecording();
           }, 500);
         }
@@ -307,7 +289,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         setStatus('idle');
       }
     }
-  }, [audioBlob, conversationHistory]);
+  }, [audioBlob]);
 
   // Handle recording state changes
   useEffect(() => {
@@ -325,20 +307,17 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Auto-start listening when component mounts or after processing
   useEffect(() => {
-    // Skip auto-listen for iOS devices (must start via tap)
-    if (isIOS) return;
-
     if (status === 'idle' && !isProcessing && !isSpeaking) {
-
+      // Small delay before starting to listen again
       const timer = setTimeout(() => {
-
         if (!isRecording && !isProcessing) {
           startRecording();
         }
       }, 1000);
+
       return () => clearTimeout(timer);
     }
-  }, [status, isProcessing, isSpeaking, isRecording, isIOS]);
+  }, [status, isProcessing, isSpeaking, isRecording]);
 
   // Handle speaking state changes
   useEffect(() => {
@@ -350,7 +329,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       // Auto-start listening after Hazel finishes speaking if autoListenNext is true
       if (autoListenNext && !isProcessing) {
         // Small delay before starting to listen again
-        const timer = setTimeout(async () => {
+        const timer = setTimeout(() => {
           startRecording();
           setAutoListenNext(false); // Reset after starting to listen
         }, 500);
@@ -364,8 +343,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage =
-        "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-      //  "hello"
+         "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing. How can I help you today?";
+          
       const playWelcome = async () => {
         try {
           setStatus('speaking');
@@ -406,34 +385,27 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Auto-start microphone recording when Hazel finishes speaking
   useEffect(() => {
-    if (
-      !isSpeaking &&
-      autoListenNext &&
-      !isRecording &&
-      !isProcessing &&
-      !isIOS
-    ) {
+    if (!isSpeaking && autoListenNext && !isRecording && !isProcessing) {
       setAutoListenNext(false);
       // slight delay to avoid race with state updates
-      setTimeout(async () => {
+      setTimeout(() => {
         startRecording();
       }, 200);
     }
   }, [isSpeaking, autoListenNext, isRecording, isProcessing, startRecording]);
 
-  // No on-screen text per requirements
-
   return (
     <div className="flex flex-col h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="p-4 bg-[#1E3A8A] text-white flex justify-between items-center">
+      {/* Header - Styled for iOS/macOS with rounded corners and translucent effect */}
+      <div className="p-4 bg-[#007AFF] bg-opacity-90 text-white flex justify-between items-center rounded-b-2xl shadow-md backdrop-blur-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#0D9488] rounded-full flex items-center justify-center relative">
+          <div className="w-10 h-10 bg-[#34C759] rounded-full flex items-center justify-center relative">
             <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
               <div
-                className={`w-2 h-2 rounded-full ${status === 'error' ? 'bg-red-500' : 'bg-[#F87171]'}`}
+                className={`w-2 h-2 rounded-full ${status === 'error' ? 'bg-[#FF3B30]' : 'bg-[#FF9500]'}`}
               ></div>
             </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#F87171] rounded-full opacity-80 animate-pulse"></div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#FF9500] rounded-full opacity-80 animate-pulse"></div>
           </div>
           <div>
             <span className="font-bold text-lg">Hazel</span>
@@ -441,10 +413,12 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors">
-            <MonitorIcon size={16} />
+          <div className="px-3 py-1.5 mr-2 bg-[#34C759] hover:bg-opacity-90 text-white rounded-full font-medium text-sm flex items-center gap-1.5 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
             <span>{operatingSystem}</span>
-          </button>
+          </div>
           {onBack && (
             <button
               onClick={onBack}
@@ -472,7 +446,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
       {/* Horizontal Layout: 60% History + 40% Voice UI */}
       <div className="h-[80vh] md:h-full flex-1 flex flex-col md:flex-row">
-        {/* Conversation History - 60% */}
+        {/* Conversation History - 60% - Styled with iOS/macOS aesthetics */}
         <div className="h-[70vh] md:h-full w-full md:w-[60%] border-r bg-white overflow-y-auto">
           {conversationHistory.length > 0 ? (
             <div className="p-4 space-y-4">
@@ -482,10 +456,10 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                    className={`max-w-[85%] px-3 py-2 rounded-2xl ${
                       message.type === 'user'
-                        ? 'bg-[#0D9488] text-white'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-[#007AFF] text-white'
+                        : 'bg-gray-200 text-gray-800'
                     }`}
                   >
                     <div className="text-sm">{message.content}</div>
@@ -501,25 +475,25 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   </div>
                 </div>
               ))}
-
+              
               {showRecommendations && (
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleRecommendationsClick}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                    className="flex items-center px-4 py-2 bg-gradient-to-r from-[#5856D6] to-[#007AFF] text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#5856D6] focus:ring-opacity-50"
                   >
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <svg 
+                      className="w-5 h-5 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24" 
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M13 10V3L4 14h7v7l9-11h-7z" 
                       />
                     </svg>
                     Show Recommendations
@@ -538,39 +512,27 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Voice Interface - 40% */}
+        {/* Voice Interface - 40% - Styled with iOS/macOS aesthetics */}
         <div className="h-[10vh] md:h-full w-full md:w-[40%] flex flex-col items-center justify-end md:justify-center p-6 text-center bg-gradient-to-b from-gray-50 to-gray-100">
           <div className="relative mb-0 md:mb-8">
-            {/* Animated microphone icon */}
-            {/* Mic button container */}
+            {/* Animated microphone icon - Styled for iOS/macOS */}
             <div
               className={`relative top-16 md:top-0 w-14 h-14 md:w-48 md:h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
                 status === 'listening'
-                  ? 'bg-red-100 scale-110'
+                  ? 'bg-[#FF3B30]/10 scale-110'
                   : status === 'processing' || status === 'speaking'
-                    ? 'bg-green-50'
+                    ? 'bg-[#007AFF]/5'
                     : 'bg-white'
-              } shadow-lg ${
-                isIOS ? 'cursor-pointer hover:scale-105 active:scale-95' : ''
-              }`}
-              onClick={() => {
-                if (!isIOS) return; // only clickable on iOS
-                if (status === 'processing' || status === 'speaking') return; // prevent mid-process tap
-                if (isRecording) {
-                  stopRecording();
-                } else {
-                  startRecording();
-                }
-              }}
+              } shadow-lg`}
             >
               <div
                 className={`p-6 rounded-full ${
                   status === 'listening'
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-[#FF3B30] text-white'
                     : status === 'processing'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-[#007AFF]/20 text-[#007AFF]'
                       : status === 'speaking'
-                        ? 'bg-green-100 text-green-600'
+                        ? 'bg-[#34C759]/20 text-[#34C759]'
                         : 'bg-gray-100 text-gray-600'
                 }`}
               >
@@ -597,38 +559,38 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 ) : status === 'processing' ? (
                   <div className="flex space-x-2">
                     <div
-                      className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"
+                      className="w-3 h-3 bg-[#007AFF] rounded-full animate-bounce"
                       style={{ animationDelay: '0ms' }}
                     ></div>
                     <div
-                      className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"
+                      className="w-3 h-3 bg-[#007AFF] rounded-full animate-bounce"
                       style={{ animationDelay: '150ms' }}
                     ></div>
                     <div
-                      className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"
+                      className="w-3 h-3 bg-[#007AFF] rounded-full animate-bounce"
                       style={{ animationDelay: '300ms' }}
                     ></div>
                   </div>
                 ) : status === 'speaking' ? (
                   <div className="flex items-center justify-center space-x-1">
                     <div
-                      className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave"
+                      className="w-1 h-4 bg-[#34C759] rounded-full animate-audio-wave"
                       style={{ animationDelay: '0ms' }}
                     ></div>
                     <div
-                      className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave"
+                      className="w-1 h-6 bg-[#34C759] rounded-full animate-audio-wave"
                       style={{ animationDelay: '100ms' }}
                     ></div>
                     <div
-                      className="w-1 h-8 bg-green-500 rounded-full animate-audio-wave"
+                      className="w-1 h-8 bg-[#34C759] rounded-full animate-audio-wave"
                       style={{ animationDelay: '200ms' }}
                     ></div>
                     <div
-                      className="w-1 h-6 bg-green-500 rounded-full animate-audio-wave"
+                      className="w-1 h-6 bg-[#34C759] rounded-full animate-audio-wave"
                       style={{ animationDelay: '300ms' }}
                     ></div>
                     <div
-                      className="w-1 h-4 bg-green-500 rounded-full animate-audio-wave"
+                      className="w-1 h-4 bg-[#34C759] rounded-full animate-audio-wave"
                       style={{ animationDelay: '400ms' }}
                     ></div>
                   </div>
@@ -650,12 +612,12 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 )}
               </div>
 
-              {/* Animated rings when listening */}
+              {/* Animated rings when listening - Using iOS colors */}
               {status === 'listening' && (
                 <>
-                  <div className="absolute inset-0 rounded-full border-4 border-red-200 opacity-70 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-[#FF3B30]/20 opacity-70 animate-ping"></div>
                   <div
-                    className="absolute inset-0 rounded-full border-4 border-red-100 opacity-70 animate-ping"
+                    className="absolute inset-0 rounded-full border-4 border-[#FF3B30]/10 opacity-70 animate-ping"
                     style={{ animationDelay: '0.5s' }}
                   ></div>
                 </>
@@ -680,4 +642,4 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   );
 };
 
-export default SpeechAssistant;
+export default AppleDeviceChatInterface;
