@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { detectOS } from '../utils/detectOS';
-import { MonitorIcon } from 'lucide-react';
 import { useVoiceRecorder } from '../hook/useVoiceRecorder';
 import { uploadAudioFile, textToAudio } from '../api/hazelChatApi';
 import { playAudio } from '../utils/playAudio';
@@ -40,6 +39,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
+  const isIOS = operatingSystem.toLowerCase().includes('ios');
 
   useEffect(() => {
     if (conversationHistory.length >= 5 && !hasShownRecommendations) {
@@ -160,6 +160,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   };
   const [autoListenNext, setAutoListenNext] = useState(false);
+  const [pendingAudioBuffer, setPendingAudioBuffer] = useState<ArrayBuffer | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -243,19 +244,23 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       ).buffer;
       setStatus('speaking');
 
-      // Play the audio and set up auto-listen for after speech completes
-      playAudio(audioBuffer, setIsSpeaking, () => {
-        // This callback runs when audio finishes playing
-        if (autoListenNext) {
-          // Small delay before starting to listen again
-          setTimeout(() => {
-            startRecording();
-          }, 500);
-        }
-      });
-
-      // Enable auto-listen for the next user input
-      setAutoListenNext(true);
+      // On iOS, require user tap to play; else autoplay
+      if (isIOS) {
+        setPendingAudioBuffer(audioBuffer);
+        // Enable auto-listen after speech completes
+        setAutoListenNext(true);
+      } else {
+        // Play the audio and set up auto-listen for after speech completes
+        playAudio(audioBuffer, setIsSpeaking, () => {
+          if (autoListenNext) {
+            setTimeout(() => {
+              startRecording();
+            }, 500);
+          }
+        });
+        // Enable auto-listen for the next user input
+        setAutoListenNext(true);
+      }
     } catch (err) {
       console.error('Error in speech processing:', err);
       setStatus('error');
@@ -269,6 +274,44 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     } finally {
       setIsProcessing(false);
       resetRecording();
+    }
+  };
+
+  const unlockAndPlayWelcome = async () => {
+    if (!isIOS || hasWelcomed || isSpeaking || isProcessing) return;
+    try {
+      const AudioCtx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        try {
+          const ctx = new AudioCtx();
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          await ctx.resume();
+          setTimeout(() => {
+            try { source.disconnect(); ctx.close(); } catch {}
+          }, 0);
+        } catch {}
+      }
+
+      const welcomeMessage =
+        "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+      setStatus('speaking');
+      const tts = await textToAudio(welcomeMessage);
+      const base64 = (tts as any)?.audio;
+      if (base64) {
+        const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+        setAutoListenNext(true);
+        await playAudio(audioBuffer, setIsSpeaking);
+      }
+      setStatus('idle');
+      setHasWelcomed(true);
+    } catch (err) {
+      console.error('iOS unlock welcome failed:', err);
+      setStatus('idle');
+      setHasWelcomed(true);
     }
   };
 
@@ -300,8 +343,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   }, [isRecording, status, audioBlob]);
 
-  // Auto-start listening when component mounts or after processing
+  // Auto-start listening only after welcome has finished or later idle states
   useEffect(() => {
+    if (!hasWelcomed) return;
     if (status === 'idle' && !isProcessing && !isSpeaking) {
       // Small delay before starting to listen again
       const timer = setTimeout(() => {
@@ -312,7 +356,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
       return () => clearTimeout(timer);
     }
-  }, [status, isProcessing, isSpeaking, isRecording]);
+  }, [hasWelcomed, status, isProcessing, isSpeaking, isRecording]);
 
   // Handle speaking state changes
   useEffect(() => {
@@ -340,40 +384,45 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const welcomeMessage =
          "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
           //  "hello"
-      const playWelcome = async () => {
+      const initWelcome = async () => {
+        // Add welcome message to conversation history immediately
+        const welcomeEntry = {
+          id: `welcome-${Date.now()}`,
+          type: 'bot' as const,
+          content: welcomeMessage,
+          timestamp: new Date(),
+        };
+        setConversationHistory([welcomeEntry]);
+
         try {
-          setStatus('speaking');
-
-          // Add welcome message to conversation history
-          const welcomeEntry = {
-            id: `welcome-${Date.now()}`,
-            type: 'bot' as const,
-            content: welcomeMessage,
-            timestamp: new Date(),
-          };
-          setConversationHistory([welcomeEntry]);
-
           const tts = await textToAudio(welcomeMessage);
           const base64 = (tts as any)?.audio;
           if (base64) {
-            const audioBuffer = Uint8Array.from(atob(base64), (c) =>
-              c.charCodeAt(0)
-            ).buffer;
-            // Enable auto-listen after Hazel finishes speaking
-            setAutoListenNext(true);
-            await playAudio(audioBuffer, setIsSpeaking);
+            const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+            if (isIOS) {
+              // Queue for user tap; do not autoplay
+              setPendingAudioBuffer(audioBuffer);
+              setAutoListenNext(true);
+            } else {
+              setStatus('speaking');
+              setAutoListenNext(true);
+              await playAudio(audioBuffer, setIsSpeaking);
+              setStatus('idle');
+            }
+          } else {
+            setHasWelcomed(true);
           }
-          setStatus('idle');
         } catch (err) {
-          console.error('Error playing welcome message:', err);
+          console.error('Error preparing welcome message:', err);
           setStatus('idle');
-        } finally {
+          setHasWelcomed(true);
+        }
+        if (!isIOS) {
           setHasWelcomed(true);
         }
       };
 
-      // Small delay to ensure component is fully mounted
-      const timer = setTimeout(playWelcome, 500);
+      const timer = setTimeout(initWelcome, 300);
       return () => clearTimeout(timer);
     }
   }, [hasWelcomed]);
@@ -409,10 +458,6 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors">
-            <MonitorIcon size={16} />
-            <span>{operatingSystem}</span>
-          </button>
           {onBack && (
             <button
               onClick={onBack}
@@ -517,7 +562,12 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   : status === 'processing' || status === 'speaking'
                     ? 'bg-green-50'
                     : 'bg-white'
-              } shadow-lg`}
+              } shadow-lg ${isIOS && !hasWelcomed ? 'cursor-pointer' : ''}`}
+              onClick={() => {
+                if (isIOS && !hasWelcomed) {
+                  void unlockAndPlayWelcome();
+                }
+              }}
             >
               <div
                 className={`p-6 rounded-full ${
@@ -617,6 +667,11 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 </>
               )}
             </div>
+            {isIOS && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 z-10 pointer-events-none">
+                <p className="text-xs text-gray-600">Tap to let Hazel speak</p>
+              </div>
+            )}
           </div>
 
           {/* Controls */}
@@ -672,6 +727,58 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         </div> */}
         </div>
       </div>
+
+      {/* iOS: tap anywhere to play queued Hazel audio (welcome or subsequent) */}
+      {isIOS && pendingAudioBuffer && (
+        <div
+          onClick={async () => {
+            try {
+              // Ensure AudioContext resumed on iOS
+              const AudioCtx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+              if (AudioCtx) {
+                try {
+                  const ctx = new AudioCtx();
+                  const buffer = ctx.createBuffer(1, 1, 22050);
+                  const source = ctx.createBufferSource();
+                  source.buffer = buffer;
+                  source.connect(ctx.destination);
+                  source.start(0);
+                  await ctx.resume();
+                  setTimeout(() => { try { source.disconnect(); ctx.close(); } catch {} }, 0);
+                } catch {}
+              }
+              let bufferToPlay: ArrayBuffer | null = pendingAudioBuffer;
+              if (!bufferToPlay && !hasWelcomed) {
+                // Fallback: prepare welcome TTS now if it wasn't ready yet
+                const welcomeMessage =
+                  "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+                try {
+                  const tts = await textToAudio(welcomeMessage);
+                  const base64 = (tts as any)?.audio;
+                  if (base64) {
+                    bufferToPlay = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+                  }
+                } catch {}
+              }
+              if (bufferToPlay) {
+                setStatus('speaking');
+                await playAudio(bufferToPlay, setIsSpeaking);
+                setStatus('idle');
+                setPendingAudioBuffer(null);
+                setHasWelcomed(true);
+                if (autoListenNext) {
+                  setTimeout(() => {
+                    startRecording();
+                    setAutoListenNext(false);
+                  }, 300);
+                }
+              }
+            } catch {}
+          }}
+          className="fixed inset-0 z-50"
+          style={{ background: 'transparent' }}
+        />
+      )}
 
       {/* Add animation styles */}
       <style>{`
