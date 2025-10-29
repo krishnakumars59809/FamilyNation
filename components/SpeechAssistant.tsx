@@ -38,6 +38,19 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       timestamp: Date;
     }>
   >([]);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+
+const enableAudioPlayback = () => {
+  const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+  const context = new AudioContext();
+  const buffer = context.createBuffer(1, 1, 22050);
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.connect(context.destination);
+  source.start(0);
+  setAudioEnabled(true);
+};
+
 
   // Show recommendations button after 5 messages and only if it hasn't been shown before
   const [hasShownRecommendations, setHasShownRecommendations] = useState(false);
@@ -441,10 +454,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="px-3 py-1.5 mr-2 bg-[#0D9488] hover:bg-[#0c7c6f] text-white rounded-lg font-medium text-sm flex items-center gap-1.5 transition-colors">
-            <MonitorIcon size={16} />
-            <span>{operatingSystem}</span>
-          </button>
+            {isIOS && !audioEnabled && (
+  <button
+    onClick={enableAudioPlayback}
+    className="mt-4 px-6 py-3 rounded-full text-white shadow-lg bg-[#0D9488] hover:bg-[#0c7c6f]"
+  >
+    Tap to Enable Audio
+  </button>
+)}
+
           {onBack && (
             <button
               onClick={onBack}
