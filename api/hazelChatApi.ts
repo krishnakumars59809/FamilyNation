@@ -16,9 +16,10 @@ export const sendReply = (
   });
 };
 
-export const uploadAudioFile = (file: File): Promise<{ text: string }> => {
+export const uploadAudioFile = (file: File, language: string = 'en-US'): Promise<{ text: string }> => {
   const formData = new FormData();
   formData.append('audio', file);
+  formData.append('language', language);
   return apiClient(
     `/chat/transcribe`,
     {
@@ -29,10 +30,10 @@ export const uploadAudioFile = (file: File): Promise<{ text: string }> => {
   );
 };
 
-export const textToAudio = (text: string): Promise<ReplyResponse> => {
+export const textToAudio = (text: string, language: string = 'en-US'): Promise<ReplyResponse> => {
   return apiClient(`/chat/textToAudio`, {
     method: 'POST',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, language }),
   });
 };
 
@@ -43,5 +44,6 @@ export const geminiChat = (
   return apiClient(`/chat/chat`, {
     method: 'POST',
     body: JSON.stringify({ messages: text, useSearch }),
-  });
+  });
 };
+

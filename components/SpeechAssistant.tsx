@@ -6,6 +6,16 @@ import { playAudio } from '../utils/playAudio';
 import { sendToPerplexity } from '../api/perflexityApi';
 import { systemPrompt } from './constants/systemPrompt';
 
+const SUPPORTED_LANGUAGES = [
+  { code: 'ta-IN', label: 'Tamil (India)' },
+  { code: 'en-US', label: 'English (US)' },
+  { code: 'es-ES', label: 'Spanish (ES)' },
+  { code: 'fr-FR', label: 'French (FR)' },
+  { code: 'de-DE', label: 'German (DE)' },
+  { code: 'it-IT', label: 'Italian (IT)' },
+  // Add more as needed
+];
+
 const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const {
     isRecording,
@@ -26,6 +36,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [selectedLanguage, setSelectedLanguage] = useState('ta-IN');
   type MessageContent = string | React.ReactNode;
 
   const [conversationHistory, setConversationHistory] = useState<
@@ -180,7 +191,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const file = new File([audioBlob], `speech-${Date.now()}.wav`, {
         type: 'audio/wav',
       });
-      const sttResponse = await uploadAudioFile(file);
+      const sttResponse = await uploadAudioFile(file, selectedLanguage);
       const userText = sttResponse?.text?.trim();
 
       if (!userText) {
@@ -234,7 +245,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       setConversationHistory((prev) => [...prev, botEntry]);
 
       // 3. Convert response to speech via existing API
-      const tts = await textToAudio(cleanedReply);
+      const tts = await textToAudio(cleanedReply, selectedLanguage);
       const base64 = (tts as any)?.audio;
       if (!base64) {
         throw new Error('TTS audio missing');
@@ -299,7 +310,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const welcomeMessage =
         "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
       setStatus('speaking');
-      const tts = await textToAudio(welcomeMessage);
+      const tts = await textToAudio(welcomeMessage, selectedLanguage);
       const base64 = (tts as any)?.audio;
       if (base64) {
         const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
@@ -395,7 +406,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         setConversationHistory([welcomeEntry]);
 
         try {
-          const tts = await textToAudio(welcomeMessage);
+          const tts = await textToAudio(welcomeMessage, selectedLanguage);
           const base64 = (tts as any)?.audio;
           if (base64) {
             const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
@@ -480,6 +491,17 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
               </svg>
             </button>
           )}
+          <select
+            value={selectedLanguage}
+            onChange={e => setSelectedLanguage(e.target.value)}
+            className="ml-4 px-2 py-1 rounded border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring"
+            aria-label="Select language"
+            style={{ minWidth: 130 }}
+          >
+            {SUPPORTED_LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>{lang.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -753,7 +775,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 const welcomeMessage =
                   "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
                 try {
-                  const tts = await textToAudio(welcomeMessage);
+                  const tts = await textToAudio(welcomeMessage, selectedLanguage);
                   const base64 = (tts as any)?.audio;
                   if (base64) {
                     bufferToPlay = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
