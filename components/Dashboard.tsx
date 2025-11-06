@@ -205,7 +205,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {' '}
               {/* Added text-start wrapper */}
               <p className="text-white text-lg leading-relaxed font-lato max-w-4xl">
-                You're in a safe space. We believe{' '}
+                You're in a safe space. We believe that{' '}
                 <strong className="text-green-500">
                   stronger families build a stronger future
                 </strong>
@@ -224,7 +224,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onClick={() => setChatbotOpen(true)}
                 className="border border-white hover:bg-red-500 text-white py-5 px-10 transition-all duration-300 transform hover:scale-105 shadow-lg text-lg flex items-center justify-center"
               >
-                💬 Need Help Now ? Talk to Hazel !
+                💬 Need Help Now ? Talk to Hazel !!
               </button>
             </div>
           </div>
