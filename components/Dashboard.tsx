@@ -223,7 +223,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Welcome to FamilyNation
                 </h1>
                 <p className=" text-2xl text-white mt-4 font-lato italic">
-                  "It Starts at Home."
+                  "It Starts at Home..."
                 </p>
               </div>
             </div>
