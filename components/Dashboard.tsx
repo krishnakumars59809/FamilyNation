@@ -237,7 +237,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   stronger families build a stronger future
                 </strong>
                 . Our AI agent Hazel and curated network of professionals are
-                here to guide you every step of the way.
+                here to guide you through every step of the way.
               </p>
             </div>
             {/* CTA Button */}
