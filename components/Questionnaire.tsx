@@ -9,9 +9,9 @@ import {
   CardTitle,
 } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { Label } from '@radix-ui/react-label';
 import { RadioGroup, RadioGroupItem } from './ui/radioGroup';
 import { Button } from './ui/button';
+import { Label } from './ui/label';
 interface QuestionnaireProps {
   setChatbotOpen: (open: boolean) => void;
 }
