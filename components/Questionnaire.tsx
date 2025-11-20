@@ -9,9 +9,7 @@ import {
   CardTitle,
 } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { RadioGroup, RadioGroupItem } from './ui/radioGroup';
 import { Button } from './ui/button';
-import { Label } from './ui/label';
 interface QuestionnaireProps {
   setChatbotOpen: (open: boolean) => void;
 }
@@ -83,6 +81,7 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ setChatbotOpen }) => {
             </Alert>
 
             {/* Question 1 */}
+            {/* Question 1 */}
             <div className="space-y-5 bg-white p-6 rounded-xl border border-blue-300">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
@@ -96,50 +95,82 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ setChatbotOpen }) => {
                 </h3>
               </div>
 
-              <RadioGroup
-                value={question1}
-                onValueChange={setQuestion1}
-                className="space-y-3"
-              >
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="0" id="q1-0" />
-                  <Label
-                    htmlFor="q1-0"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+              <div className="space-y-3">
+                <label
+                  htmlFor="q1-0"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q1-0"
+                    name="question1"
+                    value="0"
+                    checked={question1 === '0'}
+                    onChange={(e) => setQuestion1(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Not at all
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="1" id="q1-1" />
-                  <Label
-                    htmlFor="q1-1"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q1-1"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q1-1"
+                    name="question1"
+                    value="1"
+                    checked={question1 === '1'}
+                    onChange={(e) => setQuestion1(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Several days
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="2" id="q1-2" />
-                  <Label
-                    htmlFor="q1-2"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q1-2"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q1-2"
+                    name="question1"
+                    value="2"
+                    checked={question1 === '2'}
+                    onChange={(e) => setQuestion1(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     More than half the days
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="3" id="q1-3" />
-                  <Label
-                    htmlFor="q1-3"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q1-3"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q1-3"
+                    name="question1"
+                    value="3"
+                    checked={question1 === '3'}
+                    onChange={(e) => setQuestion1(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Nearly every day
-                  </Label>
-                </div>
-              </RadioGroup>
+                  </span>
+                </label>
+              </div>
             </div>
 
+            {/* Question 2 */}
             {/* Question 2 */}
             <div className="space-y-5 bg-white p-6 rounded-xl border border-blue-300">
               <div className="flex items-start gap-3">
@@ -154,48 +185,79 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ setChatbotOpen }) => {
                 </h3>
               </div>
 
-              <RadioGroup
-                value={question2}
-                onValueChange={setQuestion2}
-                className="space-y-3"
-              >
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="0" id="q2-0" />
-                  <Label
-                    htmlFor="q2-0"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+              <div className="space-y-3">
+                <label
+                  htmlFor="q2-0"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q2-0"
+                    name="question2"
+                    value="0"
+                    checked={question2 === '0'}
+                    onChange={(e) => setQuestion2(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Not at all
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="1" id="q2-1" />
-                  <Label
-                    htmlFor="q2-1"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q2-1"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q2-1"
+                    name="question2"
+                    value="1"
+                    checked={question2 === '1'}
+                    onChange={(e) => setQuestion2(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Several days
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="2" id="q2-2" />
-                  <Label
-                    htmlFor="q2-2"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q2-2"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q2-2"
+                    name="question2"
+                    value="2"
+                    checked={question2 === '2'}
+                    onChange={(e) => setQuestion2(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     More than half the days
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                  <RadioGroupItem value="3" id="q2-3" />
-                  <Label
-                    htmlFor="q2-3"
-                    className="flex-1 cursor-pointer text-gray-800 font-medium"
-                  >
+                  </span>
+                </label>
+
+                <label
+                  htmlFor="q2-3"
+                  className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    id="q2-3"
+                    name="question2"
+                    value="3"
+                    checked={question2 === '3'}
+                    onChange={(e) => setQuestion2(e.target.value)}
+                    className="h-5 w-5"
+                  />
+                  <span className="flex-1 text-gray-800 font-medium">
                     Nearly every day
-                  </Label>
-                </div>
-              </RadioGroup>
+                  </span>
+                </label>
+              </div>
             </div>
 
             {/* Buttons */}
