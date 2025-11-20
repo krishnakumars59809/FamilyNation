@@ -55,7 +55,7 @@ const App = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const scrollArea = document.querySelector('main'); // your scroll container
+    const scrollArea = document.querySelector('main');
     if (scrollArea) {
       scrollArea.scrollTo({ top: 0, behavior: 'instant' });
     }
