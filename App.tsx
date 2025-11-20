@@ -1,5 +1,11 @@
 import React from 'react';
-import { Routes, Route, useNavigate, Link } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  useNavigate,
+  Link,
+  useLocation,
+} from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import ActionPlan from './components/ActionPlan';
 import { PlaceholderView } from './components/PlaceholderView';
@@ -21,13 +27,17 @@ import ProfilePage from './pages/ProfilePage';
 import { useUser } from './api/userApi';
 import Footer from './components/footer';
 import './index.css';
+import Welcome from './components/WelcomePage';
+import Consent from './components/Consent';
+import Questionnaire from './components/Questionnaire';
 const App = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const [isChatbotOpen, setChatbotOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar hidden by default
   const [isHidden, setHidden] = useState(false); // Eye overlay hidden by default
-  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [operatingSystem, setOperatingSystem] =
+    useState<string>('Detecting OS...');
 
   useEffect(() => {
     setHidden(true);
@@ -41,6 +51,15 @@ const App = () => {
       setOperatingSystem('Unknown OS');
     }
   }, []);
+
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const scrollArea = document.querySelector('main'); // your scroll container
+    if (scrollArea) {
+      scrollArea.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [pathname]);
 
   return (
     <div className="relative flex h-screen font-sans italic overflow-hidden">
@@ -91,6 +110,12 @@ const App = () => {
             <Route path="/login" element={<LoginForm />} />
             <Route path="/family-register" element={<FamilyRegisterForm />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/consent" element={<Consent />} />
+            <Route
+              path="/questionnaire"
+              element={<Questionnaire setChatbotOpen={setChatbotOpen} />}
+            />
           </Routes>
           <Footer />
         </main>
@@ -148,9 +173,9 @@ const App = () => {
       {isChatbotOpen && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
           <div className="relative w-full max-w-6xl h-[100vh] bg-white lg:rounded-xl shadow-lg overflow-hidden">
-           <ChatProvider
-                children={<Chatbot onClose={() => setChatbotOpen(false)} />}
-              />
+            <ChatProvider
+              children={<Chatbot onClose={() => setChatbotOpen(false)} />}
+            />
           </div>
         </div>
       )}

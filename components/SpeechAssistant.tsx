@@ -25,9 +25,10 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   >([]);
   const [hasWelcomed, setHasWelcomed] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [operatingSystem, setOperatingSystem] = useState<string>('Detecting OS...');
+  const [operatingSystem, setOperatingSystem] =
+    useState<string>('Detecting OS...');
   type MessageContent = string | React.ReactNode;
-
+  const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);
   const [conversationHistory, setConversationHistory] = useState<
     Array<{
       id: string;
@@ -47,6 +48,18 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   }, [conversationHistory.length, hasShownRecommendations]);
 
+  const handleStopSpeaking = () => {
+    // 1. Stop audio
+    if (audioPlayer) {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+    }
+
+    // 2. Clear audio & speaking state
+    setAudioPlayer(null);
+    setIsSpeaking(false);
+  };
+
   // Detect OS on component mount
   useEffect(() => {
     try {
@@ -63,7 +76,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     setShowRecommendations(false);
     // Mark recommendations as shown to prevent button from reappearing
     setHasShownRecommendations(true);
-    
+
     try {
       // Show loading state
       const loadingMessage = {
@@ -72,15 +85,14 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: 'Finding helpful resources for you...',
         timestamp: new Date(),
       };
-      setConversationHistory(prev => [...prev, loadingMessage]);
+      setConversationHistory((prev) => [...prev, loadingMessage]);
 
       // Get the conversation context
-      const conversationContext = conversationHistory
-        .slice(-4)
-        .map(m => ({
-          type: m.type,
-          content: typeof m.content === 'string' ? m.content : '[Content with links]'
-        }));
+      const conversationContext = conversationHistory.slice(-4).map((m) => ({
+        type: m.type,
+        content:
+          typeof m.content === 'string' ? m.content : '[Content with links]',
+      }));
 
       // Create a focused prompt to get media resources
       const prompt = `Based on our conversation, please provide 2-4 high-quality, relevant media links 
@@ -92,37 +104,55 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const response = await sendToPerplexity(
         prompt,
         'You are a helpful assistant that provides relevant and high-quality media resources. ' +
-        'Focus on educational content from reputable sources. Include a mix of videos and articles.',
-        conversationContext,  
+          'Focus on educational content from reputable sources. Include a mix of videos and articles.',
+        conversationContext,
         true // Enable web search
       );
 
       // Remove loading message
-      setConversationHistory(prev => prev.filter(m => m.id !== loadingMessage.id));
+      setConversationHistory((prev) =>
+        prev.filter((m) => m.id !== loadingMessage.id)
+      );
 
       // Process and format the response
       const formattedContent = (
         <div className="space-y-3">
-          <p className="font-medium text-gray-800">Here are some resources you might find helpful:</p>
+          <p className="font-medium text-gray-800">
+            Here are some resources you might find helpful:
+          </p>
           <div className="space-y-2">
-            {response.split('\n')
-              .filter(line => line.trim().startsWith('- ['))
+            {response
+              .split('\n')
+              .filter((line) => line.trim().startsWith('- ['))
               .map((line, i) => {
                 // Extract link and text using regex
                 const match = line.match(/\[(.*?)\]\((.*?)\)(?: - (.*))?/);
                 if (!match) return null;
-                
+
                 const [, title, url, description] = match;
                 return (
-                  <div key={i} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <a 
-                      href={url} 
-                      target="_blank" 
+                  <div
+                    key={i}
+                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <a
+                      href={url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium flex items-start"
                     >
-                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      <svg
+                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
                       </svg>
                       <span>
                         {title}
@@ -146,21 +176,23 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         content: formattedContent,
         timestamp: new Date(),
       };
-      
-      setConversationHistory(prev => [...prev, recommendationMessage]);
+
+      setConversationHistory((prev) => [...prev, recommendationMessage]);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
       const errorMessage = {
         id: `rec-error-${Date.now()}`,
         type: 'bot' as const,
-        content: 'Sorry, I had trouble finding resources. You can try asking me a specific question about what you\'re looking for!',
+        content:
+          "Sorry, I had trouble finding resources. You can try asking me a specific question about what you're looking for!",
         timestamp: new Date(),
       };
-      setConversationHistory(prev => [...prev, errorMessage]);
+      setConversationHistory((prev) => [...prev, errorMessage]);
     }
   };
   const [autoListenNext, setAutoListenNext] = useState(false);
-  const [pendingAudioBuffer, setPendingAudioBuffer] = useState<ArrayBuffer | null>(null);
+  const [pendingAudioBuffer, setPendingAudioBuffer] =
+    useState<ArrayBuffer | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -251,7 +283,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         setAutoListenNext(true);
       } else {
         // Play the audio and set up auto-listen for after speech completes
-        playAudio(audioBuffer, setIsSpeaking, () => {
+        playAudio(audioBuffer, setIsSpeaking, setAudioPlayer, () => {
           if (autoListenNext) {
             setTimeout(() => {
               startRecording();
@@ -280,7 +312,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const unlockAndPlayWelcome = async () => {
     if (!isIOS || hasWelcomed || isSpeaking || isProcessing) return;
     try {
-      const AudioCtx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx: any =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx) {
         try {
           const ctx = new AudioCtx();
@@ -291,7 +324,10 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           source.start(0);
           await ctx.resume();
           setTimeout(() => {
-            try { source.disconnect(); ctx.close(); } catch {}
+            try {
+              source.disconnect();
+              ctx.close();
+            } catch {}
           }, 0);
         } catch {}
       }
@@ -302,9 +338,11 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       const tts = await textToAudio(welcomeMessage);
       const base64 = (tts as any)?.audio;
       if (base64) {
-        const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+        const audioBuffer = Uint8Array.from(atob(base64), (c) =>
+          c.charCodeAt(0)
+        ).buffer;
         setAutoListenNext(true);
-        await playAudio(audioBuffer, setIsSpeaking);
+        await playAudio(audioBuffer, setIsSpeaking, setAudioPlayer);
       }
       setStatus('idle');
       setHasWelcomed(true);
@@ -382,8 +420,8 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   useEffect(() => {
     if (!hasWelcomed) {
       const welcomeMessage =
-         "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
-          //  "hello"
+        "Hello! I'm Hazel, your family support assistant. I'm here to help you with any family concerns or challenges you might be facing.  How can I help you today?";
+      //  "hello"
       const initWelcome = async () => {
         // Add welcome message to conversation history immediately
         const welcomeEntry = {
@@ -398,7 +436,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           const tts = await textToAudio(welcomeMessage);
           const base64 = (tts as any)?.audio;
           if (base64) {
-            const audioBuffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+            const audioBuffer = Uint8Array.from(atob(base64), (c) =>
+              c.charCodeAt(0)
+            ).buffer;
             if (isIOS) {
               // Queue for user tap; do not autoplay
               setPendingAudioBuffer(audioBuffer);
@@ -406,7 +446,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             } else {
               setStatus('speaking');
               setAutoListenNext(true);
-              await playAudio(audioBuffer, setIsSpeaking);
+              await playAudio(audioBuffer, setIsSpeaking, setAudioPlayer);
               setStatus('idle');
             }
           } else {
@@ -460,7 +500,10 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         <div className="flex items-center space-x-3">
           {onBack && (
             <button
-              onClick={onBack}
+              onClick={() => {
+                onBack();
+                handleStopSpeaking();
+              }}
               className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center"
               aria-label="Back"
             >
@@ -484,7 +527,7 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       </div>
 
       {/* Horizontal Layout: 60% History + 40% Voice UI */}
-      <div className="h-[80vh] md:h-full flex-1 flex flex-col md:flex-row">
+      <div className="h-[80vh] flex-1 flex flex-col md:flex-row">
         {/* Conversation History - 60% */}
         <div className="h-[70vh] md:h-full w-full md:w-[60%] border-r bg-white overflow-y-auto">
           {conversationHistory.length > 0 ? (
@@ -514,25 +557,25 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   </div>
                 </div>
               ))}
-              
+
               {showRecommendations && (
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleRecommendationsClick}
                     className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
                   >
-                    <svg 
-                      className="w-5 h-5 mr-2" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24" 
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M13 10V3L4 14h7v7l9-11h-7z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                     Show Recommendations
@@ -734,7 +777,9 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           onClick={async () => {
             try {
               // Ensure AudioContext resumed on iOS
-              const AudioCtx: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+              const AudioCtx: any =
+                (window as any).AudioContext ||
+                (window as any).webkitAudioContext;
               if (AudioCtx) {
                 try {
                   const ctx = new AudioCtx();
@@ -744,7 +789,12 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   source.connect(ctx.destination);
                   source.start(0);
                   await ctx.resume();
-                  setTimeout(() => { try { source.disconnect(); ctx.close(); } catch {} }, 0);
+                  setTimeout(() => {
+                    try {
+                      source.disconnect();
+                      ctx.close();
+                    } catch {}
+                  }, 0);
                 } catch {}
               }
               let bufferToPlay: ArrayBuffer | null = pendingAudioBuffer;
@@ -756,13 +806,15 @@ const SpeechAssistant: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                   const tts = await textToAudio(welcomeMessage);
                   const base64 = (tts as any)?.audio;
                   if (base64) {
-                    bufferToPlay = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
+                    bufferToPlay = Uint8Array.from(atob(base64), (c) =>
+                      c.charCodeAt(0)
+                    ).buffer;
                   }
                 } catch {}
               }
               if (bufferToPlay) {
                 setStatus('speaking');
-                await playAudio(bufferToPlay, setIsSpeaking);
+                await playAudio(bufferToPlay, setIsSpeaking, setAudioPlayer);
                 setStatus('idle');
                 setPendingAudioBuffer(null);
                 setHasWelcomed(true);
