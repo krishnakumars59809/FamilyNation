@@ -10,18 +10,15 @@ const UserProfile: React.FC = () => {
   const { user: data, getAllFamilyMembersByUserId } = useUser();
 
   const [user, setUser] = useState({
-    name: data?.firstName || '',
+    name: `${data?.firstName ?? ''} ${data?.lastName ?? ''}`.trim(),
     firstName: data?.firstName || '',
     lastName: data?.lastName || '',
     email: data?.email || '',
     userId: data?.id || '',
   });
 
-  const [familyMembers, setFamilyMembers] = useState(data?.familyMembers || []);
-
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
-  const [AllFamilyMembers, setAllFamilyMembers] = useState<FamilyMember[]>([]);
-
   const [message, setMessage] = useState('');
 
   const getAllFamilyMembers = async (userId: string) => {
@@ -36,7 +33,7 @@ const UserProfile: React.FC = () => {
 
       const res = await getAllFamilyMembersByUserId(userId);
 
-      setAllFamilyMembers(res as FamilyMember[]);
+      setFamilyMembers(res as FamilyMember[]);
       setMessage('Family members fetched successfully!');
     } catch (err) {
       console.error('Error fetching family members:', err);
@@ -72,7 +69,7 @@ const UserProfile: React.FC = () => {
   const handleAddMember = () => {
     setFamilyMembers([
       ...familyMembers,
-      { name: '', age: '', gender: '', relationship: '', needs: '' },
+      { name: '', age: 0, gender: '', relation: '', needs: [''] },
     ]);
   };
 
@@ -94,7 +91,7 @@ const UserProfile: React.FC = () => {
   }, [data, navigate]);
 
   return (
-    <div className="min-h-screen bg-white/90 p-6">
+    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-200 via-white to-emerald-200">
       <p className="p-2 text-2xl md:text-2xl font-bold">My Profile</p>
       <div className="h-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Profile Card */}
@@ -143,6 +140,7 @@ const UserProfile: React.FC = () => {
           </div>
 
           <h3 className="text-lg font-bold mt-6 mb-4">Family Members</h3>
+
           <div className="max-h-[350px] overflow-y-auto space-y-6">
             {familyMembers.map((member, index) => (
               <div
@@ -211,8 +209,8 @@ const UserProfile: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        name="relationship"
-                        value={member.relationship}
+                        name="relation"
+                        value={member.relation}
                         onChange={(e) => handleMemberChange(index, e)}
                         placeholder="Relationship Status"
                         className="w-full bg-gray-100 border-b px-4 py-2 text-gray-800 focus:ring-b-4 focus:ring-blue-500 focus:border-blue-500 outline-none"

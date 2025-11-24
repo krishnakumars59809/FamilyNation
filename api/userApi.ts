@@ -100,14 +100,16 @@ export const useUser = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-  // ===== Get all family members by user ID =====
-  const getAllFamilyMembersByUserId = async (
-    userId: string
-  ): Promise<FamilyMember[]> => {
-    return apiClient<FamilyMember[]>(`/user/${userId}/getfamilymember`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const getAllFamilyMembersByUserId = async (userId: string) => {
+    const res = await apiClient<{ family: FamilyMember[] }>(
+      `/user/${userId}/family`,
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const list = res.family || [];
+    return list;
   };
 
   const updateUser = async (id: string, data: Partial<User>) =>
