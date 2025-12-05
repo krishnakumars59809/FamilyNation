@@ -78,6 +78,7 @@ export default function FamilyRegisterForm() {
       console.log('kk user id', user?.id);
       await addFamilyMembers(user?.id || '', members as never);
       setMessage('Family members added successfully ✅');
+      alert('Family members added successfully ✅');
       navigate('/');
     } catch (error) {
       console.error('Error adding family members:', error);

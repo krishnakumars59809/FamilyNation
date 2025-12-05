@@ -107,21 +107,21 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-4">
           <div ref={dropdownRef}>
             {/* User Avatar */}
-            {/* {user && ( */}
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              <img
-                src={mockAvatarUrl}
-                alt={userName}
-                className="w-8 h-8 rounded-full border-2 border-green-700"
-              />
-              <span className="text-gray-700 font-medium hidden sm:block capitalize">
-                {user?.firstName} {user?.lastName} Johnson
-              </span>
-            </div>
-            {/* )} */}
+            {user && (
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                <img
+                  src={mockAvatarUrl}
+                  alt={userName}
+                  className="w-8 h-8 rounded-full border-2 border-green-700"
+                />
+                <span className="text-gray-700 font-medium hidden sm:block capitalize">
+                  {user?.firstName} {user?.lastName}
+                </span>
+              </div>
+            )}
 
             {/* Dropdown menu */}
             {isOpen && (
@@ -136,19 +136,21 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
                     Profile
                   </button>
                 </Link>
-
-                {/* <button
-                  className="px-4 py-2 flex gap-2 text-left hover:bg-gray-100 w-full text-red-500 cursor-pointer"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button> */}
+                {user && (
+                  <button
+                    className="px-4 py-2 flex gap-2 text-left hover:bg-gray-100 w-full text-red-500 cursor-pointer"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* {user ? (
+          {user ? (
             <button
+              title="Exit"
               onClick={onExit}
               className="text-red-500 hover:text-red-600 font-bold py-2 transition-colors duration-300 flex items-center gap-2"
             >
@@ -162,7 +164,7 @@ export const HeaderComponent: React.FC<HeaderProps> = ({
                 <span className="hidden md:block">Login</span>
               </button>
             </Link>
-          )} */}
+          )}
         </div>
       </div>
     </header>
