@@ -18,6 +18,7 @@ import ActionPlan from './ActionPlan';
 import { sendToPerplexity } from '../api/perflexityApi';
 import SpeechAssistant from './SpeechAssistant';
 import { systemPrompt as sharedSystemPrompt } from './constants/systemPrompt';
+import VoicePermissionModal from './ui/voicePermissionModal';
 
 type ChatMessage = {
   id: string;
@@ -62,7 +63,10 @@ export const Chatbot = ({ onClose }: { onClose?: () => void }) => {
   const [conversationContext, setConversationContext] = useState<
     { id: string; type: 'user' | 'bot'; content: string }[]
   >([]);
-  const [showSpeechAssistant, setShowSpeechAssistant] = useState(true); // Start with speech assistant by default
+
+  const [showVoiceModal, setShowVoiceModal] = useState(true);
+  const [showSpeechAssistant, setShowSpeechAssistant] = useState(false);
+  const [voiceEnable, setVoiceEnable] = useState(false);
 
   // Gemini continuation state
   const [geminiThread, setGeminiThread] = useState<
@@ -521,9 +525,27 @@ ${text}
       </div>
     );
 
+  if (showVoiceModal) {
+    return (
+      <VoicePermissionModal
+        onSelect={(value) => {
+          setVoiceEnable(value);
+          setShowVoiceModal(false);
+          setShowSpeechAssistant(true);
+        }}
+      />
+    );
+  }
   // If speech assistant is toggled, show it instead of chat UI
   if (showSpeechAssistant) {
-    return <SpeechAssistant onBack={onClose} />;
+    return (
+      <SpeechAssistant
+        voiceEnable={voiceEnable}
+        input={input}
+        setInput={setInput}
+        onBack={onClose}
+      />
+    );
   }
 
   // Main Chat Interface
